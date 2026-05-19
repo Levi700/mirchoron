@@ -374,8 +374,8 @@ tr:active td{background:var(--hbg)}
       <div class="sep"></div>
 
       <!-- כל הפריטים -->
-      <div class="sec-title">כל הפריטים</div>
-      <div id="items-list"></div>
+      <button class="btn" onclick="toggleItemsList()" id="items-toggle-btn" style="width:100%;margin-bottom:8px">&#x25BC; כל הפריטים</button>
+      <div id="items-list" style="display:none"></div>
 
 
       <div class="sep"></div>
@@ -1113,8 +1113,10 @@ function openOrderModal(idx) {
   var item = wigOrderMap[idx];
   if (!item) return;
   pendingOrder = { wig: item.wig, col: item.col, price: item.price, date: new Date().toLocaleDateString('he-IL') };
+  var rateNow = usdRate || lastRate;
   document.getElementById('order-wig-info').innerHTML =
-    '<strong>' + item.wig + '</strong> — ' + item.col;
+    '<strong>' + item.wig + '</strong> — ' + item.col +
+    (rateNow ? '<br><span style="font-size:12px;color:var(--muted)">שער דולר עכשיו: ₪' + rateNow.toFixed(3) + '</span>' : '');
   document.getElementById('ord-price').value = item.price;
   document.getElementById('ord-orig-price').textContent = 'מחיר מחירון: ₪' + item.price.toLocaleString('he-IL');
   document.getElementById('ord-name').value = '';
@@ -1137,12 +1139,13 @@ function saveOrder() {
   if (!name) { toast('נא להזין שם לקוחה'); return; }
   var editedPrice = parseFloat(document.getElementById('ord-price').value);
   if (!isNaN(editedPrice) && editedPrice > 0) pendingOrder.price = editedPrice;
-  pendingOrder.name  = name;
-  pendingOrder.phone = document.getElementById('ord-phone').value.trim();
-  pendingOrder.city  = document.getElementById('ord-city').value.trim();
-  pendingOrder.pay   = document.getElementById('ord-pay').value;
-  pendingOrder.notes = document.getElementById('ord-notes').value.trim();
-  pendingOrder.id    = Date.now();
+  pendingOrder.name     = name;
+  pendingOrder.phone    = document.getElementById('ord-phone').value.trim();
+  pendingOrder.city     = document.getElementById('ord-city').value.trim();
+  pendingOrder.pay      = document.getElementById('ord-pay').value;
+  pendingOrder.notes    = document.getElementById('ord-notes').value.trim();
+  pendingOrder.rateUsed = usdRate || lastRate || null;
+  pendingOrder.id       = Date.now();
   orders.unshift(pendingOrder);
   saveOrders();
   closeOrderModal();
@@ -1205,6 +1208,7 @@ function openCustomer(id) {
     (o.phone?'<div>&#x1F4F1; <a href="tel:'+o.phone+'">'+o.phone+'</a></div>':'')+
     (o.city?'<div>&#x1F4CD; '+o.city+'</div>':'')+
     '<div>&#x1F4B3; '+o.pay+'</div>'+
+    (o.rateUsed?'<div>&#x1F4B1; שער דולר: ₪'+o.rateUsed.toFixed(3)+'</div>':'')+
     '<div>&#x1F4C5; '+o.date+'</div>'+
     (o.notes?'<div>&#x1F4DD; '+o.notes+'</div>':'')+
     '</div>' +
@@ -1501,6 +1505,19 @@ function importBackup(input) {
     }
   };
   reader.readAsText(file);
+}
+
+
+function toggleItemsList() {
+  var el = document.getElementById('items-list');
+  var btn = document.getElementById('items-toggle-btn');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = '▲ כל הפריטים';
+  } else {
+    el.style.display = 'none';
+    btn.textContent = '▼ כל הפריטים';
+  }
 }
 
 render();
