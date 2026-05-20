@@ -1607,6 +1607,7 @@ function buildOrderText(o){
     'נתוני גלריה: ' + [gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ') + '\n') : '';
   return 'הזמנת ייצור פאה - רחלי קאשי\n' +
     '-------------------------\n' +
+    'שם לקוחה: ' + (o.name||'') + '\n' +
     'דגם/שם פאה: ' + (o.wig||'') + '\n' +
     'סוג/קטגוריה: ' + (o.col||'') + '\n' +
     galleryLine +
@@ -1779,7 +1780,7 @@ function buildManufacturerImageForOrderAsync(o){
       ctx.fillStyle='#111827'; ctx.font='700 44px Arial'; ctx.fillText('Manufacturer Order - Racheli Kashi', right, y); y+=58;
       ctx.font='400 24px Arial'; ctx.fillStyle='#4b5563'; ctx.fillText('תאריך: '+(o.createdAt||o.date||''), right, y); y+=44;
       var d=o.wigDetails||{}, gd=o.galleryDetails||{};
-      var info='דגם/שם פאה: '+(o.wig||'')+'\nסוג/קטגוריה: '+(o.col||'')+'\n'+(o.galleryOrder?'מקור: גלריה | '+[gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ')+'\n':'')+'\nנתוני ייצור:\nמידת רשת: '+(d.cap||'')+'\nמבנה/דירוג: '+(d.structure||'')+'\nסוג שיער: '+(d.hair||'')+'\nצבע בסיס: '+(d.baseColor||'')+'\nצבע גוונים: '+(d.highlightColor||'')+'\nסגנון גוונים: '+(d.highlightStyle||'')+'\nהערות ייצור: '+(d.notes||'');
+      var info='שם לקוחה: '+(o.name||'')+'\nדגם/שם פאה: '+(o.wig||'')+'\nסוג/קטגוריה: '+(o.col||'')+'\n'+(o.galleryOrder?'מקור: גלריה | '+[gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ')+'\n':'')+'\nנתוני ייצור:\nמידת רשת: '+(d.cap||'')+'\nמבנה/דירוג: '+(d.structure||'')+'\nסוג שיער: '+(d.hair||'')+'\nצבע בסיס: '+(d.baseColor||'')+'\nצבע גוונים: '+(d.highlightColor||'')+'\nסגנון גוונים: '+(d.highlightStyle||'')+'\nהערות ייצור: '+(d.notes||'');
       ctx.fillStyle='#111827'; ctx.font='400 28px Arial';
       y=wrapCanvasTextByWords(ctx, info, right, y, maxW, 38)+24;
       if(o.galleryImage){
@@ -1851,7 +1852,7 @@ function openManufacturerPdfCurrent(){
 
 
 async function shareManufacturerPackageFromOrder(order){
-  var txt = order.manufacturerText || buildOrderText(order);
+  var txt = buildOrderText(order); order.manufacturerText = txt;
   currentOrderTextForSend = txt;
   window.currentPreparedOrderId = order.id;
 
