@@ -564,10 +564,11 @@ button.tab-btn.active{
 
       <!-- הגדרות חישוב -->
       <div class="sec-title">הגדרות חישוב</div>
-      <div class="g3">
+      <div class="g2">
         <div class="field"><label>עמלה ($)</label><input type="number" id="cfg-com" min="0" step="1"></div>
         <div class="field"><label>רווח (&#x20AA;)</label><input type="number" id="cfg-prf" min="0" step="100"></div>
         <div class="field"><label>מע"מ (%)</label><input type="number" id="cfg-vat" min="0" step="1"></div>
+        <div class="field"><label>תפעול (%)</label><input type="number" id="cfg-ops" min="0" step="1"></div>
       </div>
       <button class="btn btn-blue" onclick="saveSettings()" style="width:100%">&#10003; שמור הגדרות</button>
 
@@ -851,7 +852,7 @@ function saveSales(s){ try { localStorage.setItem(STORE_KEY+'_sales', JSON.strin
 function savePin(p)  { try { localStorage.setItem(STORE_KEY+'_pin',   p); }               catch(e){} }
 function saveRate(r) { try { localStorage.setItem(STORE_KEY+'_rate',  String(r)); }        catch(e){} }
 
-let cfg   = loadCfg()   || { commission: 60, profit: 2000, vat: 20 };
+let cfg   = loadCfg()   || { commission: 60, profit: 2000, vat: 20, ops: 0 };
 let data  = loadData()  || defaultData();
 let sales = loadSales();
 let pin   = loadPin();
@@ -862,14 +863,17 @@ function saveSettings() {
   const comEl  = document.getElementById('cfg-com');
   const prfEl  = document.getElementById('cfg-prf');
   const vatEl  = document.getElementById('cfg-vat');
+  const opsEl  = document.getElementById('cfg-ops');
   const comVal = comEl.value.trim();
   const prfVal = prfEl.value.trim();
   const vatVal = vatEl.value.trim();
+  const opsVal = opsEl ? opsEl.value.trim() : '0';
   if (comVal === '' || prfVal === '' || vatVal === '') { alert('נא למלא את כל השדות'); return; }
   cfg.commission = parseFloat(comVal);
   cfg.profit     = parseFloat(prfVal);
   cfg.vat        = parseFloat(vatVal);
-  if (isNaN(cfg.commission) || isNaN(cfg.profit) || isNaN(cfg.vat)) { alert('ערכים לא תקינים'); return; }
+  cfg.ops        = opsVal === '' ? 0 : parseFloat(opsVal);
+  if (isNaN(cfg.commission) || isNaN(cfg.profit) || isNaN(cfg.vat) || isNaN(cfg.ops)) { alert('ערכים לא תקינים'); return; }
   saveCfg(cfg);
   render();
   toast('ההגדרות נשמרו');
@@ -878,7 +882,8 @@ function saveSettings() {
 function calc(rawUsd) {
   const rate = usdRate || lastRate;
   if (!rate || rawUsd == null) return null;
-  return Math.round(((rawUsd + cfg.commission) * rate + cfg.profit) * (1 + cfg.vat / 100));
+  const ops = cfg.ops || 0;
+  return Math.round(((rawUsd + cfg.commission) * rate + cfg.profit) * (1 + cfg.vat / 100) * (1 + ops / 100));
 }
 
 function applyDiscount(price, pct) {
@@ -1055,6 +1060,8 @@ function loadAdminFields() {
   document.getElementById('cfg-com').value = cfg.commission;
   document.getElementById('cfg-prf').value = cfg.profit;
   document.getElementById('cfg-vat').value = cfg.vat;
+  var opsEl = document.getElementById('cfg-ops');
+  if (opsEl) opsEl.value = cfg.ops || 0;
   renderItemsList();
   renderSalesList();
   renderGalAdminList();
@@ -1171,7 +1178,18 @@ let lbWigInfo = null;
 
 function loadGal() {
   try {
-    var keys = [STORE_KEY+'_gal','mirchoron_v2_gal','mirchoron_v1_gal'];
+    // פורמט chunks חדש
+    var n = parseInt(localStorage.getItem(STORE_KEY+"_gal_chunks") || "0");
+    if (n > 0) {
+      var all = [];
+      for (var i = 0; i < n; i++) {
+        var s = localStorage.getItem(STORE_KEY+"_gal_"+i);
+        if (s) all = all.concat(JSON.parse(s));
+      }
+      if (all.length > 0) return all;
+    }
+    // פולבק לפורמטים ישנים
+    var keys = [STORE_KEY+"_gal","mirchoron_v2_gal","mirchoron_v1_gal"];
     for (var i=0;i<keys.length;i++) {
       var s = localStorage.getItem(keys[i]);
       if (s) { var d=JSON.parse(s); if(d.length>0) return d; }
@@ -1179,7 +1197,24 @@ function loadGal() {
     return [];
   } catch(e){ return []; }
 }
-function saveGal()  { try { localStorage.setItem(STORE_KEY+'_gal', JSON.stringify(galPhotos)); } catch(e){} }
+var GAL_CHUNK = 10;
+function saveGal() {
+  try {
+    var i = 0;
+    while (localStorage.getItem(STORE_KEY+"_gal_"+i) !== null) {
+      localStorage.removeItem(STORE_KEY+"_gal_"+i); i++;
+    }
+    localStorage.removeItem(STORE_KEY+"_gal");
+    var chunks = Math.ceil(galPhotos.length / GAL_CHUNK) || 1;
+    for (var c = 0; c < chunks; c++) {
+      localStorage.setItem(STORE_KEY+"_gal_"+c, JSON.stringify(galPhotos.slice(c*GAL_CHUNK,(c+1)*GAL_CHUNK)));
+    }
+    localStorage.setItem(STORE_KEY+"_gal_chunks", String(chunks));
+  } catch(e) {
+    console.warn('saveGal failed:', e);
+    toast("⚠️ שגיאה בשמירת גלריה — נסה תמונות קטנות יותר");
+  }
+}
 
 function renderGallery() {
   var tabsEl = document.getElementById('cat-tabs');
@@ -1439,6 +1474,23 @@ document.getElementById('lb-img').addEventListener('touchend', e=>{
   if (Math.abs(diff)>40) lbNav(diff>0?1:-1);
 }, {passive:true});
 
+function compressImage(dataUrl, callback) {
+  var img = new Image();
+  img.onload = function() {
+    var MAX = 900;
+    var w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else        { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    var canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    callback(canvas.toDataURL('image/jpeg', 0.72));
+  };
+  img.src = dataUrl;
+}
+
 function addGalPhoto() {
   const name   = document.getElementById('gal-name').value.trim();
   const type   = document.getElementById('gal-type').value;
@@ -1454,15 +1506,17 @@ function addGalPhoto() {
   Array.from(files).forEach(function(file) {
     var reader = new FileReader();
     reader.onload = function(e) {
-      galPhotos.push({name:name,type:type,color:color,style:style,length:length,url:e.target.result,groupId:groupId});
-      loaded++;
-      if (loaded===total) {
-        saveGal();
-        renderGallery();
-        renderGalAdminList();
-        document.getElementById('gal-file').value='';
-        toast(loaded + ' תמונות נוספו');
-      }
+      compressImage(e.target.result, function(compressed) {
+        galPhotos.push({name:name,type:type,color:color,style:style,length:length,url:compressed,groupId:groupId});
+        loaded++;
+        if (loaded===total) {
+          saveGal();
+          renderGallery();
+          renderGalAdminList();
+          document.getElementById('gal-file').value='';
+          toast(loaded + ' תמונות נוספו');
+        }
+      });
     };
     reader.readAsDataURL(file);
   });
@@ -1598,30 +1652,57 @@ var TERMS_TEXT = 'אחריות והצהרת לקוחה\n' +
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function val(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; }
 
-function loadOrders() {
-  try { var s=localStorage.getItem(STORE_KEY+'_orders'); return s?JSON.parse(s):[]; } catch(e){ return []; }
+function stripOrderImages(arr) {
+  return arr.map(function(o) {
+    var c = Object.assign({}, o);
+    delete c.manufacturerImage;
+    delete c.signatureImage;
+    delete c.termsImage;
+    return c;
+  });
 }
+
+// שמירת הזמנות ב-chunks כדי לא לחרוג ממגבלת localStorage של מפתח בודד
+var ORDERS_CHUNK = 50;
 function saveOrders() {
   try {
-    // Strip heavy image data before saving to avoid localStorage overflow
-    var lean = orders.map(function(o) {
-      var c = Object.assign({}, o);
-      delete c.manufacturerImage;
-      delete c.signatureImage;
-      delete c.termsImage;
-      return c;
-    });
-    localStorage.setItem(STORE_KEY+'_orders', JSON.stringify(lean));
+    var lean = stripOrderImages(orders);
+    // נקה chunks ישנים
+    var i = 0;
+    while (localStorage.getItem(STORE_KEY+"_orders_"+i) !== null) {
+      localStorage.removeItem(STORE_KEY+"_orders_"+i);
+      i++;
+    }
+    localStorage.removeItem(STORE_KEY+"_orders"); // מפתח ישן
+    // שמור ב-chunks
+    var chunks = Math.ceil(lean.length / ORDERS_CHUNK) || 1;
+    for (var c = 0; c < chunks; c++) {
+      var slice = lean.slice(c * ORDERS_CHUNK, (c+1) * ORDERS_CHUNK);
+      localStorage.setItem(STORE_KEY+"_orders_"+c, JSON.stringify(slice));
+    }
+    localStorage.setItem(STORE_KEY+"_orders_chunks", String(chunks));
   } catch(e) {
     console.warn('saveOrders failed:', e);
-    try {
-      // Emergency: save only essential fields
-      var minimal = orders.map(function(o) {
-        return {id:o.id,name:o.name,phone:o.phone,wig:o.wig,price:o.price,date:o.date,pay:o.pay,city:o.city};
-      });
-      localStorage.setItem(STORE_KEY+'_orders', JSON.stringify(minimal));
-    } catch(e2) {}
+    toast("⚠️ שגיאת שמירה — נסה לפנות מקום בדפדפן");
   }
+}
+
+function loadOrders() {
+  try {
+    // נסה פורמט chunks חדש
+    var n = parseInt(localStorage.getItem(STORE_KEY+"_orders_chunks") || "0");
+    if (n > 0) {
+      var all = [];
+      for (var i = 0; i < n; i++) {
+        var s = localStorage.getItem(STORE_KEY+"_orders_"+i);
+        if (s) all = all.concat(JSON.parse(s));
+      }
+      return all;
+    }
+    // פולבק לפורמט ישן
+    var old = localStorage.getItem(STORE_KEY+"_orders");
+    return old ? JSON.parse(old) : [];
+  } catch(e) { return []; }
 }
 
 function openOrderModal(idx) {
@@ -2469,7 +2550,8 @@ function previewReport() {
 
   var html = '<strong>&#x20AA;' + Math.round(total).toLocaleString('he-IL') + '</strong> סה"כ הכנסות<br>' +
     filtered.length + ' רכישות בתקופה' +
-    (topWig ? '<br>הכי נמכר: <b>' + topWig + '</b> (' + wigCount[topWig] + ' יחידות)' : '');
+    (topWig ? '<br>הכי נמכר: <b>' + topWig + '</b> (' + wigCount[topWig] + ' יחידות)' : '') +
+    '<br><span style="font-size:12px;color:var(--muted)">עמלה: $' + cfg.commission + ' | רווח: ₪' + cfg.profit + ' | מע"מ: ' + cfg.vat + '%' + (cfg.ops ? ' | תפעול: ' + cfg.ops + '%' : '') + '</span>';
 
   document.getElementById('report-summary').innerHTML = html;
   document.getElementById('report-preview').style.display = 'block';
@@ -2494,17 +2576,18 @@ function exportReport(type) {
     var lines = [];
     if (cfg.commission) lines.push('עמלה: $' + cfg.commission);
     if (cfg.profit)     lines.push('רווח: ₪' + cfg.profit);
-    if (cfg.vat)        lines.push('מעגם: ' + cfg.vat + '%');
+    if (cfg.vat)        lines.push('מע"מ: ' + cfg.vat + '%');
+    if (cfg.ops)        lines.push('תפעול: ' + cfg.ops + '%');
     if (rate)           lines.push('שער דולר: ₪' + rate.toFixed(3));
     return lines.join(' | ');
   }
 
   if (type === 'excel') {
-    var csv = '\uFEFF' + ['שם','טלפון','עיר','פאה','עמודה','מחיר סופי','עמלה ($)','רווח','מעגם','שער דולר','תשלום','תאריך','הערות'].join(',') + '\n';
+    var csv = '\uFEFF' + ['שם','טלפון','עיר','פאה','עמודה','מחיר סופי','עמלה ($)','רווח','מע"מ','תפעול (%)','שער דולר','תשלום','תאריך','הערות'].join(',') + '\n';
     filtered.forEach(function(o){
       csv += ['"'+(o.name||'')+'"','"'+(o.phone||'')+'"','"'+(o.city||'')+'"',
         '"'+(o.wig||'')+'"','"'+(o.col||'')+'"',o.price||0,
-        cfg.commission,cfg.profit,cfg.vat,rate?rate.toFixed(3):'',
+        cfg.commission,cfg.profit,cfg.vat,cfg.ops||0,rate?rate.toFixed(3):'',
         '"'+(o.pay||'')+'"','"'+(o.date||'')+'"','"'+(o.notes||'')+'"'].join(',') + '\n';
     });
     csv += ',,,,,'+Math.round(total)+',,,,,,\u05e1\u05d4"\u05db,\n';
