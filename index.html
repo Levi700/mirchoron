@@ -211,6 +211,34 @@ body.dark-mode{--bg:#1a1a1a;--card:#242424;--border:#333;--text:#f0f0f0;--muted:
 .modal-close-x{position:absolute;top:10px;left:10px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .modal-close-x:active{background:var(--hbg)}
 #order-box,#terms-send-box,#customer-box,#report-box,#backup-box,#admin-lb-box,#mgmt-box{position:relative}
+
+/* תיקון יציבות כפתורי מחירון/גלריה */
+.tab-btn,
+.tab-btn.active,
+button.tab-btn,
+button.tab-btn.active{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  border-radius:10px !important;
+  padding:8px 0 !important;
+  font-size:14px !important;
+  line-height:1.2 !important;
+  font-weight:700 !important;
+  width:110px !important;
+  min-width:110px !important;
+  max-width:110px !important;
+  height:40px !important;
+  min-height:40px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:4px !important;
+  box-sizing:border-box !important;
+  font-family:inherit !important;
+}
+.tab-btn{background:var(--card) !important;color:var(--muted) !important;border:2px solid var(--border) !important}
+.tab-btn.active{background:var(--text) !important;color:var(--card) !important;border:2px solid var(--text) !important}
+
 </style>
 </head>
 <body>
@@ -1878,8 +1906,8 @@ function switchPage(page) {
   document.getElementById('page-pricelist').style.display = page==='price' ? 'block' : 'none';
   document.getElementById('page-gallery').style.display   = page==='gallery' ? 'block' : 'none';
   var crm = document.getElementById('page-crm'); if (crm) crm.style.display = page==='crm' ? 'block' : 'none';
-  if (document.getElementById('nav-price')) document.getElementById('nav-price').className   = 'nav-btn' + (page==='price'?' active':'');
-  if (document.getElementById('nav-gallery')) document.getElementById('nav-gallery').className = 'nav-btn' + (page==='gallery'?' active':'');
+  if (document.getElementById('nav-price')) document.getElementById('nav-price').className   = 'tab-btn' + (page==='price'?' active':'');
+  if (document.getElementById('nav-gallery')) document.getElementById('nav-gallery').className = 'tab-btn' + (page==='gallery'?' active':'');
   if (page==='gallery') renderGallery();
   if (page==='crm') renderCRM();
 }
