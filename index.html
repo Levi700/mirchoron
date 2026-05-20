@@ -1765,15 +1765,18 @@ function downloadDataUrl(dataUrl, filename){
 }
 async function downloadOrderSignedTerms(id){
   var o=getOrderById(id); 
-  if(!o) return;
+  if(!o){ toast('לא נמצאה הזמנה'); return; }
+  if(!o.signature && !o.signedTermsImage){ toast('אין חתימה שמורה להזמנה הזאת'); return; }
   var img = await buildSignedTermsImageForOrderAsync(o);
+  if(!img) img = o.signedTermsImage||'';
   if (img) {
     o.signedTermsImage = img;
     if (o.archive) o.archive.hasSignedTermsImage = true;
     saveOrders();
     downloadDataUrl(img, 'signed_terms_'+id+'.png');
+    toast('תמונה חתומה הורדה');
   } else {
-    downloadDataUrl(o.signedTermsImage||'', 'signed_terms_'+id+'.png');
+    toast('אין תמונה חתומה שמורה להזמנה הזאת');
   }
 }
 function copyManufacturerOrderById(id){
@@ -1781,6 +1784,11 @@ function copyManufacturerOrderById(id){
   o.manufacturerText = buildOrderText(o);
   saveOrders();
   copyText(o.manufacturerText).then(function(){toast('הודעת יצרן הועתקה')});
+}
+function copyFullOrderById(id){
+  var o=getOrderById(id); if(!o){ toast('לא נמצאה הזמנה'); return; }
+  if(!o.fullOrderText) o.fullOrderText = buildFullCustomerOrderText(o);
+  copyText(o.fullOrderText).then(function(){ toast('טופס מלא הועתק'); }).catch(function(){ toast('לא הצלחתי להעתיק'); });
 }
 async function resendManufacturerById(id){
   var o=getOrderById(id); if(!o) return;
@@ -1861,8 +1869,9 @@ function buildManufacturerImageForOrderAsync(o){
 }
 async function downloadManufacturerImage(id){
   var o=getOrderById(id); if(!o){ toast('לא נמצאה הזמנה'); return; }
+  toast('בונה תמונת יצרן...');
   var img=await buildManufacturerImageForOrderAsync(o);
-  if(img){ o.manufacturerImage=img; saveOrders(); downloadDataUrl(img, 'manufacturer_order_'+id+'.png'); }
+  if(img){ o.manufacturerImage=img; saveOrders(); downloadDataUrl(img, 'manufacturer_order_'+id+'.png'); toast('תמונת יצרן הורדה'); }
   else toast('לא הצלחתי ליצור תמונת יצרן');
 }
 function downloadManufacturerImageCurrent(){
@@ -2254,7 +2263,7 @@ function openCustomer(id) {
       '<button class="btn" onclick="openManufacturerPdf('+id+')">PDF יצרן</button>'+ 
       '<button class="btn" onclick="downloadManufacturerImage('+id+')">תמונת יצרן</button>'+ 
       '<button class="btn btn-blue" onclick="resendManufacturerById('+id+')">שלח שוב ליצרן</button>'+ 
-      '<button class="btn" onclick="copyText((getOrderById('+id+').fullOrderText||\'\')).then(function(){toast(\'טופס מלא הועתק\')})">העתק טופס מלא</button>'+ 
+      '<button class="btn" onclick="copyFullOrderById('+id+')">העתק טופס מלא</button>'+ 
     '</div></div>'+
     (o.termsApproved?'<div>✅ תקנון אושר</div>':'')+
     (o.signature?'<div><b>חתימה מקורית:</b><br><img src="'+o.signature+'" style="max-width:100%;background:#fff;border:1px solid var(--border);border-radius:8px;margin-top:6px"></div>':'')+
