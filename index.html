@@ -378,6 +378,18 @@ button.tab-btn.active{
         <div class="field"><label>מבנה</label><select id="wig-structure"><option value="">בחרי</option><option>דירוג עדין</option><option>מדורג</option><option>אורך אחיד</option></select></div>
       </div>
       <div class="field"><label>סוג שיער</label><select id="wig-hair"><option value="">בחרי</option><option>חלק</option><option>גלי מלמעלה</option><option>גל תחתון</option><option>מתולתל חזק</option><option>מתולתל עדין</option></select></div>
+
+<div class="field">
+  <label>צפיפות שיער</label>
+  <select id="wig-density" onchange="applyDensityDiscount()">
+    <option value="130%">130% — רגיל</option>
+    <option value="110%">110% — פחות $60</option>
+  </select>
+  <div style="font-size:12px;color:var(--muted);margin-top:4px">
+    בחירת צפיפות 110% מעניקה הנחה של $60 ✨
+  </div>
+</div>
+
       <div class="g2">
         <div class="field"><label>צבע בסיס</label><select id="wig-base-color"><option value="">בחרי/השאירי פתוח</option><option>טבעי כהה</option><option>חום כהה</option><option>חום בינוני</option><option>חום בהיר</option><option>בלונד כהה</option><option>בלונד בינוני</option><option>בלונד בהיר</option><option>אחר - בהערות</option></select></div>
         <div class="field"><label>צבע גוונים</label><select id="wig-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>ללא גוונים</option><option>דבש</option><option>קרמל</option><option>בלונד</option><option>בלונד בהיר</option><option>אפרפר</option><option>אחר - בהערות</option></select></div>
@@ -1249,7 +1261,7 @@ function setSelectIfOption(id, value){
 }
 function setGalleryLockedFields(lock){
   // נתוני גלריה ממולאים אוטומטית אך נשארים פתוחים לעריכה.
-  ['wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes'].forEach(function(id){
+  ['wig-cap','wig-structure','wig-hair','wig-density','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes'].forEach(function(id){
     var el=document.getElementById(id);
     if(el){
       el.disabled=false;
@@ -1280,7 +1292,7 @@ function openOrderFromGallery(){
     gbox.style.display='block';
     gbox.innerHTML='<div class="gallery-order-preview">'+(p.url?'<img src="'+p.url+'">':'')+'<div><div style="font-weight:800">'+esc(p.name||'')+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5">הנתונים האלו הגיעו מהגלריה ונשמרים אוטומטית בהזמנה:<br>'+esc([p.type,p.color,p.style,p.length].filter(Boolean).join(' · '))+'</div></div></div><div class="gallery-lock-box">הפאה נבחרה מהגלריה. הנתונים מולאו אוטומטית, אבל אפשר לשנות או להשלים כל שדה לפני השליחה ליצרן.</div>';
   }
-  ['wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['wig-cap','wig-structure','wig-hair','wig-density','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   setSelectIfOption('wig-hair', p.style);
   setSelectIfOption('wig-base-color', p.color);
   setSelectIfOption('wig-highlight-style', p.style);
@@ -1504,31 +1516,60 @@ function val(id){ var el=document.getElementById(id); return el ? el.value.trim(
 function loadOrders() {
   try { var s=localStorage.getItem(STORE_KEY+'_orders'); return s?JSON.parse(s):[]; } catch(e){ return []; }
 }
-function saveOrders() {
-  try { localStorage.setItem(STORE_KEY+'_orders', JSON.stringify(orders)); } catch(e){} }
 
-function openOrderModal(idx) {
-  resetOrderFormForNewOrder();
-  var item = wigOrderMap[idx];
-  if (!item) return;
-  setGalleryLockedFields(false);
-  var gbox=document.getElementById('gallery-order-box'); if(gbox){ gbox.style.display='none'; gbox.innerHTML=''; }
-  pendingOrder = { wig: item.wig, col: item.col, price: item.price, date: new Date().toLocaleDateString('he-IL') };
-  var rateNow = usdRate || lastRate;
-  document.getElementById('order-wig-info').innerHTML =
-    '<strong>' + esc(item.wig) + '</strong> — ' + esc(item.col) +
-    (rateNow ? '<br><span style="font-size:12px;color:var(--muted)">שער דולר עכשיו: ₪' + rateNow.toFixed(3) + '</span>' : '');
-  ['wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('ord-price').value = item.price;
-  document.getElementById('ord-orig-price').textContent = 'מחיר מחירון: ₪' + item.price.toLocaleString('he-IL');
-  document.getElementById('ord-pay').value = 'מזומן';
-  document.getElementById('ord-terms-ok').checked = false;
-  document.getElementById('order-copy-preview').style.display = 'none';
-  document.getElementById('order-copy-preview').textContent = '';
-  document.getElementById('order-modal').classList.add('open');
-  goOrderStep(1);
-  setTimeout(initSignaturePad, 100);
+function saveOrders(){
+  try{
+
+    // שומרים גרסה קלה בלבד כדי לא לעבור מגבלת localStorage
+    var lightweight = (orders || []).map(function(o){
+
+      var clone = JSON.parse(JSON.stringify(o));
+
+      // קבצי תמונה כבדים נוצרים מחדש לפי הצורך
+      delete clone.manufacturerImage;
+      delete clone.signedTermsImage;
+
+      // חתימה נשאיר רק אם היא קטנה יחסית
+      if(clone.signature && clone.signature.length > 250000){
+        clone.signature = '';
+      }
+
+      return clone;
+    });
+
+    localStorage.setItem('orders', JSON.stringify(lightweight));
+
+  }catch(e){
+
+    console.error('saveOrders failed', e);
+
+    try{
+      // fallback מינימלי
+      var minimal = (orders || []).map(function(o){
+        return {
+          id:o.id,
+          name:o.name,
+          phone:o.phone,
+          city:o.city,
+          wig:o.wig,
+          col:o.col,
+          price:o.price,
+          createdAt:o.createdAt,
+          manufacturerText:o.manufacturerText || '',
+          fullOrderText:o.fullOrderText || '',
+          wigDetails:o.wigDetails || {}
+        };
+      });
+
+      localStorage.setItem('orders', JSON.stringify(minimal));
+      toast('המערכת שמרה גרסה קלה של הנתונים');
+
+    }catch(err){
+      alert('הזיכרון מלא — אי אפשר לשמור עוד נתונים כרגע');
+    }
+  }
 }
+
 
 function closeOrderModal() {
   document.getElementById('order-modal').classList.remove('open');
@@ -2615,7 +2656,7 @@ function resetOrderFormForNewOrder(){
 
     // איפוס שדות טופס רכישה
     [
-      'wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style',
+      'wig-cap','wig-structure','wig-hair','wig-density','wig-base-color','wig-highlight-color','wig-highlight-style',
       'wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
       'terms-whatsapp-phone','terms-email'
     ].forEach(function(id){
@@ -2672,6 +2713,36 @@ window.addEventListener('load', function(){
     }catch(e){}
   }, 1200);
 });
+
+
+function applyDensityDiscount(){
+  try{
+    var densityEl = document.getElementById('wig-density');
+    if(!densityEl || !pendingOrder) return;
+
+    var original = Number(pendingOrder.priceOriginal || pendingOrder.price || 0);
+    if(!pendingOrder.priceOriginal){
+      pendingOrder.priceOriginal = original;
+    }
+
+    if(densityEl.value === '110%'){
+      pendingOrder.price = Math.max(0, original - 60);
+    }else{
+      pendingOrder.price = original;
+    }
+
+    if(typeof renderOrderPricePreview === 'function'){
+      renderOrderPricePreview();
+    }
+
+    // refresh visible price if exists
+    var els = document.querySelectorAll('[data-order-price]');
+    els.forEach(function(el){
+      el.textContent = pendingOrder.price;
+    });
+
+  }catch(e){}
+}
 
 </script>
 
