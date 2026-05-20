@@ -239,6 +239,49 @@ button.tab-btn.active{
 .tab-btn{background:var(--card) !important;color:var(--muted) !important;border:2px solid var(--border) !important}
 .tab-btn.active{background:var(--text) !important;color:var(--card) !important;border:2px solid var(--text) !important}
 
+
+/* רכישה מתוך גלריה */
+.gallery-order-btn{margin-top:10px;background:#fff;color:#111;border:0;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.gallery-order-btn:active{transform:scale(.98)}
+.gallery-lock-box{background:var(--accent-bg);border:1px solid var(--accent);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.55;color:var(--text)}
+.gallery-order-preview{display:flex;gap:10px;align-items:center;background:var(--hbg);border-radius:12px;padding:10px;margin-bottom:12px}
+.gallery-order-preview img{width:74px;height:92px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.locked-from-gallery{opacity:.75;background:var(--hbg)!important}
+.manufacturer-img{max-width:100%;height:auto;background:#fff;border-radius:10px}
+
+
+/* מסך סיום הזמנה */
+#order-success-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:720;
+  background:rgba(0,0,0,0.62);
+  overflow-y:auto;
+  padding:16px;
+}
+#order-success-modal.open{display:block}
+#order-success-box{
+  position:relative;
+  background:var(--card);
+  border-radius:18px;
+  max-width:460px;
+  margin:0 auto;
+  padding:28px 22px 24px;
+  text-align:center;
+  box-shadow:0 8px 28px rgba(0,0,0,.18);
+}
+.success-emoji{font-size:42px;margin-bottom:8px}
+#order-success-box h3{font-size:20px;font-weight:800;margin-bottom:10px;color:var(--text)}
+.success-text{font-size:15px;line-height:1.8;color:var(--text)}
+.success-pay-title{margin-top:18px;font-size:17px;font-weight:800;color:var(--text)}
+.success-note{margin-top:8px;font-size:14px;line-height:1.8;color:var(--muted)}
+
+
+/* שמירה על מסך הסיום נקי */
+#order-send-actions{display:none !important}
+
+
 </style>
 </head>
 <body>
@@ -283,6 +326,7 @@ button.tab-btn.active{
   <button id="lb-prev" onclick="lbNav(-1)">&#x276E;</button>
   <img id="lb-img" src="" alt="">
   <div id="lb-info" style="color:#fff;text-align:center;margin-top:8px;padding:0 16px;font-size:13px"></div>
+  <button id="lb-order-btn" class="gallery-order-btn" onclick="openOrderFromGallery()">רכישה מהגלריה</button>
   <div id="lb-dots"></div>
   <button id="lb-next" onclick="lbNav(1)">&#x276F;</button>
 </div>
@@ -311,6 +355,7 @@ button.tab-btn.active{
     <button type="button" class="modal-close-x" onclick="closeOrderModal()" aria-label="סגור">×</button>
     <h3>רכישה חדשה</h3>
     <div class="wig-info" id="order-wig-info"></div>
+    <div id="gallery-order-box" style="display:none"></div>
 
     <div class="order-steps">
       <div class="order-step active" id="step-ind-1">1. פרטי פאה</div>
@@ -360,8 +405,11 @@ button.tab-btn.active{
         <button class="btn btn-blue" onclick="shareCurrentOrderText()" style="flex:1">שתף לוואטסאפ עם תוכן</button>
         <button class="btn" onclick="copyCurrentOrderText()" style="flex:1">העתק שוב</button>
         <button class="btn" onclick="openWhatsappGroup()" style="flex:1">פתח קבוצה בלבד</button>
+        <button class="btn" onclick="openManufacturerPdfCurrent()" style="flex:1">PDF ליצרן</button>
+        <button class="btn" onclick="downloadManufacturerImageCurrent()" style="flex:1">תמונת הזמנה</button>
+        <button class="btn btn-blue" onclick="shareManufacturerFileCurrent()" style="flex:1">שתף קובץ יצרן</button>
       </div>
-      <div class="order-actions"><button class="btn" onclick="goOrderStep(2)">חזרה</button><button class="btn btn-blue" onclick="saveOrder()">שמור והכן שליחה</button></div>
+      <div class="order-actions"><button class="btn" onclick="goOrderStep(2)">חזרה</button><button class="btn btn-blue" onclick="saveOrder()">שליחה ליצרן וסיום הזמנה</button></div>
     </div>
   </div>
 </div>
@@ -590,9 +638,49 @@ button.tab-btn.active{
 </div>
 
 <button id="dark-toggle" onclick="toggleDark()">🌙</button>
+
+<div id="order-success-modal">
+  <div id="order-success-box">
+    <button class="modal-close-x" onclick="closeOrderSuccess()">×</button>
+    <div class="success-emoji">🎉</div>
+    <h3>ההזמנה נשלחה בהצלחה!</h3>
+    <div class="success-text">
+      הפאה שלך כבר עברה לתהליך ייצור ✨<br>
+      ואנחנו מתחילים לעבוד עליה במיוחד בשבילך 💛
+    </div>
+    <div class="success-pay-title">💳 השלמת תשלום</div>
+    <div class="success-note">
+      כדי שההזמנה תעבור לטיפול מלא,<br>
+      נשאר רק להסדיר את התשלום.<br><br>
+      ניתן גם לבקש חלוקה נוחה לתשלומים 🌸<br><br>
+      ברגע שהתשלום יוסדר —<br>
+      ההזמנה תעבור להמשך טיפול מלא 💫
+    </div>
+  </div>
+</div>
+
 <div id="saved-toast"></div>
 
 <script>
+
+/* תיקון טעינת דולר ומחירון במחשב בפתיחת file:// */
+(function(){
+  try{
+    window.DEFAULT_USD_ILS_RATE = 3.65;
+    window.safeStorageGet = function(k, defVal){
+      try{
+        var v = localStorage.getItem(k);
+        return v ? JSON.parse(v) : defVal;
+      }catch(e){
+        return defVal;
+      }
+    };
+    window.safeStorageSet = function(k, val){
+      try{ localStorage.setItem(k, JSON.stringify(val)); }catch(e){}
+    };
+  }catch(e){}
+})();
+
 const STORE_KEY = 'mirchoron_v3';
 let usdRate = null;
 
@@ -1112,6 +1200,102 @@ function toggleFilter(name) {
   openFilter = isOpen ? null : name;
 }
 
+
+function getGalleryGroupByName(name){
+  var groups={};
+  galPhotos.forEach(function(p){ if(!groups[p.name]) groups[p.name]=[]; groups[p.name].push(p); });
+  return groups[name]||[];
+}
+function inferGalleryPriceInfo(p){
+  if(!p) return {price:0,col:'מהגלריה'};
+  var key=null;
+  if(p.type==='פאת סקין') key='silk';
+  else if(p.type==='פאת סרט') key='bandfall';
+  else if(p.type==='פאת לייס טופ'){
+    if(p.color==='בלונד בהיר') key='lace-light';
+    else if(p.color==='בלונד') key='lace-blonde';
+    else key='lace-natural';
+  }
+  var cat = key ? data[key] : null;
+  if(!cat) return {price:0,col:'מהגלריה'};
+  var row = (cat.rows||[]).find(function(r){ return r.len===p.length; });
+  if(!row) return {price:0,col:cat.title};
+  var raw = row.col1!=null ? row.col1 : row.col2;
+  var col = row.col1!=null ? cat.cols[0] : (cat.cols[1]||cat.cols[0]||'');
+  var price = calc(raw) || 0;
+  var sale = getSaleFor(key, row.col1!=null?'col1':'col2');
+  if(sale && price) price = applyDiscount(price, sale.pct);
+  return {price:price,col:col,catTitle:cat.title,key:key};
+}
+function setSelectIfOption(id, value){
+  var el=document.getElementById(id);
+  if(!el || !value) return false;
+  var clean=String(value).trim();
+  if(!clean) return false;
+  for(var i=0;i<el.options.length;i++){
+    if(el.options[i].value===clean || el.options[i].text===clean){
+      el.selectedIndex=i;
+      return true;
+    }
+  }
+  var opt=document.createElement('option');
+  opt.value=clean;
+  opt.text=clean + ' (מהגלריה)';
+  el.appendChild(opt);
+  el.value=clean;
+  return true;
+}
+function setGalleryLockedFields(lock){
+  // נתוני גלריה ממולאים אוטומטית אך נשארים פתוחים לעריכה.
+  ['wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){
+      el.disabled=false;
+      el.readOnly=false;
+      el.classList.remove('locked-from-gallery');
+    }
+  });
+}
+function openOrderFromGallery(){
+  resetOrderFormForNewOrder();
+  if(!lbWigInfo) { toast('לא נמצאה פאה בגלריה'); return; }
+  var p = Object.assign({}, lbWigInfo);
+  p.url = lbPhotos[lbIdx] || p.url || '';
+  var priceInfo = inferGalleryPriceInfo(p);
+  pendingOrder = {
+    wig: p.name || 'פאה מהגלריה',
+    col: (priceInfo.catTitle ? priceInfo.catTitle + ' — ' : '') + (priceInfo.col || 'מהגלריה'),
+    price: priceInfo.price || 0,
+    date: new Date().toLocaleDateString('he-IL'),
+    galleryOrder: true,
+    galleryImage: p.url || '',
+    galleryDetails: {name:p.name||'',type:p.type||'',color:p.color||'',style:p.style||'',length:p.length||'',priceSource:priceInfo.catTitle||''}
+  };
+  closeLb();
+  document.getElementById('order-wig-info').innerHTML = '<strong>רכישה מתוך הגלריה</strong><br>'+esc(p.name||'')+' — '+esc(p.type||'')+' · '+esc(p.color||'')+' · '+esc(p.style||'')+' · '+esc(p.length||'');
+  var gbox=document.getElementById('gallery-order-box');
+  if(gbox){
+    gbox.style.display='block';
+    gbox.innerHTML='<div class="gallery-order-preview">'+(p.url?'<img src="'+p.url+'">':'')+'<div><div style="font-weight:800">'+esc(p.name||'')+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5">הנתונים האלו הגיעו מהגלריה ונשמרים אוטומטית בהזמנה:<br>'+esc([p.type,p.color,p.style,p.length].filter(Boolean).join(' · '))+'</div></div></div><div class="gallery-lock-box">הפאה נבחרה מהגלריה. הנתונים מולאו אוטומטית, אבל אפשר לשנות או להשלים כל שדה לפני השליחה ליצרן.</div>';
+  }
+  ['wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  setSelectIfOption('wig-hair', p.style);
+  setSelectIfOption('wig-base-color', p.color);
+  setSelectIfOption('wig-highlight-style', p.style);
+  document.getElementById('wig-notes').value = 'נבחר מהגלריה: '+[p.name,p.type,p.color,p.style,p.length].filter(Boolean).join(' | ');
+  document.getElementById('ord-price').value = priceInfo.price || '';
+  document.getElementById('ord-orig-price').textContent = priceInfo.price ? 'מחיר לפי מחירון: ₪' + priceInfo.price.toLocaleString('he-IL') : 'לא נמצא מחיר אוטומטי — להזין ידנית';
+  document.getElementById('ord-pay').value = 'מזומן';
+  document.getElementById('ord-terms-ok').checked = false;
+  document.getElementById('order-copy-preview').style.display = 'none';
+  document.getElementById('order-copy-preview').textContent = '';
+  var actions=document.getElementById('order-send-actions'); if(actions) actions.style.display='none';
+  setGalleryLockedFields(true);
+  document.getElementById('order-modal').classList.add('open');
+  goOrderStep(1);
+  setTimeout(initSignaturePad, 100);
+}
+
 function openLb(encodedName) {
   const name = decodeURIComponent(encodedName);
   const groups = {};
@@ -1322,8 +1506,11 @@ function saveOrders() {
   try { localStorage.setItem(STORE_KEY+'_orders', JSON.stringify(orders)); } catch(e){} }
 
 function openOrderModal(idx) {
+  resetOrderFormForNewOrder();
   var item = wigOrderMap[idx];
   if (!item) return;
+  setGalleryLockedFields(false);
+  var gbox=document.getElementById('gallery-order-box'); if(gbox){ gbox.style.display='none'; gbox.innerHTML=''; }
   pendingOrder = { wig: item.wig, col: item.col, price: item.price, date: new Date().toLocaleDateString('he-IL') };
   var rateNow = usdRate || lastRate;
   document.getElementById('order-wig-info').innerHTML =
@@ -1409,18 +1596,21 @@ function collectOrderData(){
   o.termsText = TERMS_TEXT.replace('{DAYS}', o.days || '____');
   o.signature = getSignatureData();
   o.rateUsed = usdRate || lastRate || null;
+  if ((pendingOrder||{}).galleryOrder) { o.galleryOrder=true; o.galleryImage=(pendingOrder||{}).galleryImage||''; o.galleryDetails=(pendingOrder||{}).galleryDetails||{}; }
   return o;
 }
 
 function buildOrderText(o){
-  // הודעה ליצרן בלבד — ללא פרטי קשר, כתובת, תשלום, תקנון או חתימה.
-  var d=o.wigDetails||{};
-  return 'הזמנת ייצור חדשה - רחלי קאשי\n' +
+  // הודעה ליצרן בלבד — בלי טלפון, עיר, תשלום, תקנון או חתימה.
+  var d=o.wigDetails||{}, gd=o.galleryDetails||{};
+  var galleryLine = o.galleryOrder ? ('מקור: נבחר מתוך הגלריה\n' +
+    'נתוני גלריה: ' + [gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ') + '\n') : '';
+  return 'הזמנת ייצור פאה - רחלי קאשי\n' +
     '-------------------------\n' +
-    'שם לקוחה/שם הזמנה: ' + (o.name||'') + '\n' +
-    'דגם פאה: ' + (o.wig||'') + '\n' +
-    'סוג/עמודה: ' + (o.col||'') + '\n\n' +
-    'נתוני ייצור:\n' +
+    'דגם/שם פאה: ' + (o.wig||'') + '\n' +
+    'סוג/קטגוריה: ' + (o.col||'') + '\n' +
+    galleryLine +
+    '\nנתוני ייצור:\n' +
     'מידת רשת: ' + (d.cap||'') + '\n' +
     'מבנה/דירוג: ' + (d.structure||'') + '\n' +
     'סוג שיער: ' + (d.hair||'') + '\n' +
@@ -1429,7 +1619,6 @@ function buildOrderText(o){
     'סגנון גוונים: ' + (d.highlightStyle||'') + '\n' +
     'הערות ייצור: ' + (d.notes||'');
 }
-
 
 function buildFullCustomerOrderText(o){
   var d=o.wigDetails||{};
@@ -1445,6 +1634,7 @@ function buildFullCustomerOrderText(o){
     'פרטי הפאה:\n' +
     'דגם: ' + (o.wig||'') + '\n' +
     'סוג/עמודה: ' + (o.col||'') + '\n' +
+    (o.galleryOrder ? ('מקור: נבחר מתוך הגלריה\nנתוני גלריה: ' + [((o.galleryDetails||{}).type||''),((o.galleryDetails||{}).color||''),((o.galleryDetails||{}).style||''),((o.galleryDetails||{}).length||'')].filter(Boolean).join(' · ') + '\n') : '') +
     'מידת רשת: ' + (d.cap||'') + '\n' +
     'מבנה/דירוג: ' + (d.structure||'') + '\n' +
     'סוג שיער: ' + (d.hair||'') + '\n' +
@@ -1555,12 +1745,14 @@ async function downloadOrderSignedTerms(id){
 function copyManufacturerOrderById(id){ var o=getOrderById(id); if(!o) return; copyText(o.manufacturerText||buildOrderText(o)).then(function(){toast('הודעת יצרן הועתקה')}); }
 function resendManufacturerById(id){ var o=getOrderById(id); if(!o) return; prepareWhatsappSend(o); }
 function openOrderForm(id){
+  resetOrderFormForNewOrder();
   var o=getOrderById(id); if(!o) return;
   var txt = o.fullOrderText || buildFullCustomerOrderText(o);
   var html='<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>טופס הזמנה</title><style>body{font-family:Arial,sans-serif;direction:rtl;padding:28px;white-space:pre-wrap;line-height:1.7;color:#111}button{padding:10px 18px;margin-bottom:14px}</style></head><body><button onclick="window.print()">הדפסה / שמירה כ-PDF</button>\n'+esc(txt)+'</body></html>';
   var w=window.open('', '_blank'); if(!w){toast('הדפדפן חסם פתיחת חלון'); return;} w.document.open(); w.document.write(html); w.document.close();
 }
 async function openOrderSignedTermsPdf(id){
+  resetOrderFormForNewOrder();
   var o=getOrderById(id); if(!o) return;
   var img = await buildSignedTermsImageForOrderAsync(o);
   if (img) {
@@ -1573,6 +1765,119 @@ async function openOrderSignedTermsPdf(id){
   if(!img){ toast('אין תקנון חתום שמור להזמנה הזאת'); return; }
   var html='<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>תקנון חתום</title><style>body{margin:0;text-align:center;background:#eee}img{max-width:100%;height:auto;background:#fff}@media print{button{display:none}body{background:#fff}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin:12px">שמירה כ-PDF / הדפסה</button><br><img src="'+img+'"><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
   var w=window.open('', '_blank'); if(!w){toast('הדפדפן חסם פתיחת חלון'); return;} w.document.open(); w.document.write(html); w.document.close();
+}
+
+
+function buildManufacturerImageForOrderAsync(o){
+  return new Promise(function(resolve){
+    if(!o){ resolve(''); return; }
+    try{
+      var canvas=document.createElement('canvas'); canvas.width=1240; canvas.height=1754;
+      var ctx=canvas.getContext('2d'); ctx.direction='rtl'; ctx.textAlign='right'; ctx.textBaseline='top';
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      var right=1140, y=70, maxW=1040;
+      ctx.fillStyle='#111827'; ctx.font='700 44px Arial'; ctx.fillText('Manufacturer Order - Racheli Kashi', right, y); y+=58;
+      ctx.font='400 24px Arial'; ctx.fillStyle='#4b5563'; ctx.fillText('תאריך: '+(o.createdAt||o.date||''), right, y); y+=44;
+      var d=o.wigDetails||{}, gd=o.galleryDetails||{};
+      var info='דגם/שם פאה: '+(o.wig||'')+'\nסוג/קטגוריה: '+(o.col||'')+'\n'+(o.galleryOrder?'מקור: גלריה | '+[gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ')+'\n':'')+'\nנתוני ייצור:\nמידת רשת: '+(d.cap||'')+'\nמבנה/דירוג: '+(d.structure||'')+'\nסוג שיער: '+(d.hair||'')+'\nצבע בסיס: '+(d.baseColor||'')+'\nצבע גוונים: '+(d.highlightColor||'')+'\nסגנון גוונים: '+(d.highlightStyle||'')+'\nהערות ייצור: '+(d.notes||'');
+      ctx.fillStyle='#111827'; ctx.font='400 28px Arial';
+      y=wrapCanvasTextByWords(ctx, info, right, y, maxW, 38)+24;
+      if(o.galleryImage){
+        ctx.fillStyle='#111827'; ctx.font='700 28px Arial'; ctx.fillText('תמונת ייחוס:', right, y); y+=44;
+        var img=new Image();
+        img.onload=function(){
+          try{
+            var boxW=520, boxH=700, x=canvas.width-boxW-90;
+            ctx.fillStyle='#f9fafb'; ctx.fillRect(x,y,boxW,boxH); ctx.strokeStyle='#e5e7eb'; ctx.strokeRect(x,y,boxW,boxH);
+            var ratio=Math.min(boxW/img.width, boxH/img.height); var w=img.width*ratio, h=img.height*ratio;
+            ctx.drawImage(img, x+(boxW-w)/2, y+(boxH-h)/2, w, h);
+          }catch(e){}
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror=function(){ resolve(canvas.toDataURL('image/png')); };
+        img.src=o.galleryImage;
+      } else resolve(canvas.toDataURL('image/png'));
+    }catch(e){ resolve(''); }
+  });
+}
+async function downloadManufacturerImage(id){
+  var o=getOrderById(id); if(!o){ toast('לא נמצאה הזמנה'); return; }
+  var img=await buildManufacturerImageForOrderAsync(o);
+  if(img){ o.manufacturerImage=img; saveOrders(); downloadDataUrl(img, 'manufacturer_order_'+id+'.png'); }
+  else toast('לא הצלחתי ליצור תמונת יצרן');
+}
+function downloadManufacturerImageCurrent(){
+  if(!window.currentPreparedOrderId){ toast('שמרי קודם את ההזמנה'); return; }
+  downloadManufacturerImage(window.currentPreparedOrderId);
+}
+
+function dataUrlToFile(dataUrl, filename){
+  var arr=dataUrl.split(','), mime=(arr[0].match(/:(.*?);/)||[])[1]||'image/png';
+  var bstr=atob(arr[1]||''), n=bstr.length, u8arr=new Uint8Array(n);
+  while(n--){ u8arr[n]=bstr.charCodeAt(n); }
+  return new File([u8arr], filename, {type:mime});
+}
+async function shareManufacturerFile(id){
+  var o=getOrderById(id); if(!o){ toast('לא נמצאה הזמנה'); return; }
+  var img=await buildManufacturerImageForOrderAsync(o);
+  if(!img){ toast('לא הצלחתי ליצור קובץ יצרן'); return; }
+  o.manufacturerImage=img; saveOrders();
+  var file=dataUrlToFile(img, 'manufacturer_order_'+id+'.png');
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'הזמנת יצרן', text:o.manufacturerText||buildOrderText(o)}); return; }
+    catch(e){}
+  }
+  downloadDataUrl(img, 'manufacturer_order_'+id+'.png');
+  copyText(o.manufacturerText||buildOrderText(o));
+  toast('קובץ יצרן ירד והטקסט הועתק');
+}
+function shareManufacturerFileCurrent(){
+  if(!window.currentPreparedOrderId){ toast('שמרי קודם את ההזמנה'); return; }
+  shareManufacturerFile(window.currentPreparedOrderId);
+  try{ showOrderSuccess(); }catch(e){}
+
+}
+async function openManufacturerPdf(id){
+  var o=getOrderById(id); if(!o){ toast('לא נמצאה הזמנה'); return; }
+  var img=await buildManufacturerImageForOrderAsync(o);
+  if(img){ o.manufacturerImage=img; saveOrders(); }
+  var html='<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>הזמנת יצרן</title><style>body{margin:0;text-align:center;background:#eee}img{max-width:100%;height:auto;background:#fff}@media print{button{display:none}body{background:#fff}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin:12px">שמירה כ-PDF / הדפסה</button><br><img src="'+img+'"><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
+  var w=window.open('', '_blank'); if(!w){toast('הדפדפן חסם פתיחת חלון'); return;} w.document.open(); w.document.write(html); w.document.close();
+}
+function openManufacturerPdfCurrent(){
+  if(!window.currentPreparedOrderId){ toast('שמרי קודם את ההזמנה'); return; }
+  openManufacturerPdf(window.currentPreparedOrderId);
+}
+
+
+async function shareManufacturerPackageFromOrder(order){
+  var txt = order.manufacturerText || buildOrderText(order);
+  currentOrderTextForSend = txt;
+  window.currentPreparedOrderId = order.id;
+
+  copyText(txt).catch(function(){});
+
+  var img = order.manufacturerImage || '';
+  if(!img){
+    try{ img = await buildManufacturerImageForOrderAsync(order); }catch(e){}
+    if(img){
+      order.manufacturerImage = img;
+      saveOrders();
+    }
+  }
+
+  if(img && typeof dataUrlToFile === 'function'){
+    try{
+      var file = dataUrlToFile(img, 'manufacturer_order_'+order.id+'.png');
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:'הזמנת יצרן', text:txt});
+        return;
+      }
+    }catch(e){}
+    try{ downloadDataUrl(img, 'manufacturer_order_'+order.id+'.png'); }catch(e){}
+  }
+
+  try{ window.open(whatsappShareUrl(txt), '_blank'); }catch(e){}
 }
 
 function copyText(txt){
@@ -1598,18 +1903,11 @@ function copyCurrentOrderText(){
 function prepareWhatsappSend(o){
   var txt = buildOrderText(o);
   currentOrderTextForSend = txt;
+  window.currentPreparedOrderId = o && o.id ? o.id : null;
   var box = document.getElementById('order-copy-preview');
   var actions = document.getElementById('order-send-actions');
-  if (box) { box.style.display='block'; box.textContent = txt; }
-  if (actions) { actions.style.display='flex'; }
-  copyText(txt).then(function(){
-    toast('ההזמנה הועתקה. עכשיו נפתח וואטסאפ עם תוכן ההזמנה');
-  }).catch(function(){
-    toast('לא הצלחתי להעתיק אוטומטית — ההזמנה מוצגת כאן להעתקה');
-  });
-  // במקום לפתוח רק קישור קבוצה בלי תוכן, פותחים שיתוף וואטסאפ עם ההודעה מוכנה.
-  // שם בוחרים את קבוצת היצרן ושולחים. אם זה לא עובד במכשיר מסוים, יש כפתור "פתח קבוצה בלבד" + הדבקה.
-  window.open(whatsappShareUrl(txt), '_blank');
+  if (box) { box.style.display='none'; box.textContent = txt; }
+  if (actions) { actions.style.display='none'; }
 }
 function buildTermsCustomerText(){
   updateTermsText();
@@ -1789,30 +2087,40 @@ function openSignedTermsPdf(){
 }
 function skipTermsSend(){ toast('דילגת על שליחת התקנון ללקוחה'); }
 
-function saveOrder() {
+async function saveOrder() {
   if (!pendingOrder) return;
   if (!validateCustomerStep()) return;
-  if (!document.getElementById('ord-terms-ok').checked) { toast('צריך לסמן אישור תקנון'); return; }
+  var termsOk = document.getElementById('ord-terms-ok');
+  if (termsOk && !termsOk.checked) { toast('צריך לסמן אישור תקנון'); return; }
   if (!signatureHasInk) { toast('צריך חתימת לקוחה'); return; }
+
   var order = collectOrderData();
   order.id = Date.now();
   order.createdAt = new Date().toLocaleString('he-IL');
-  order.status = 'נשמרה והוכנה לשליחה ליצרן';
-  order.manufacturerText = buildOrderText(order); // רק נתוני ייצור, בלי פרטים אישיים מיותרים
-  order.fullOrderText = buildFullCustomerOrderText(order); // טופס מלא שנשמר אצלך בלבד
-  order.signedTermsImage = buildSignedTermsImageForOrder(order); // תקנון + חתימה כתמונה שמורה בכרטיס הלקוחה
+  order.status = 'נשמרה ונשלחה ליצרן';
+  order.manufacturerText = buildOrderText(order);
+  order.manufacturerImage = '';
+  order.fullOrderText = buildFullCustomerOrderText(order);
+  order.signedTermsImage = buildSignedTermsImageForOrder(order);
   order.archive = {
     savedAt: order.createdAt,
     hasSignature: !!order.signature,
     hasSignedTermsImage: !!order.signedTermsImage,
-    manufacturerPrepared: true
+    manufacturerPrepared: true,
+    manufacturerSent: true
   };
+
+  try {
+    var mImg = await buildManufacturerImageForOrderAsync(order);
+    if (mImg) order.manufacturerImage = mImg;
+  } catch(e) {}
+
   orders.unshift(order);
   saveOrders();
-  prepareWhatsappSend(order);
   renderCRM();
-  toast('ההזמנה נשמרה בתיק הלקוחה + הוכנה לשליחה ליצרן');
-  // משאירים את החלון פתוח כדי שאפשר יהיה לראות/להעתיק שוב אם צריך
+
+  await shareManufacturerPackageFromOrder(order);
+  try{ showOrderSuccess(); }catch(e){}
 }
 
 
@@ -1872,6 +2180,7 @@ function openCustomer(id) {
   document.getElementById('cust-content').innerHTML =
     '<div style="display:flex;flex-direction:column;gap:10px;font-size:14px">' +
     '<div style="background:var(--hbg);border-radius:10px;padding:12px"><strong>'+esc(o.wig)+'</strong><br>'+esc(o.col||'')+'<br><span style="font-size:16px;font-weight:700;color:var(--accent)">&#x20AA;'+(o.price||0).toLocaleString('he-IL')+'</span><br><span class="status-pill">'+esc(o.status||'נשמר בתיק לקוחה')+'</span></div>' +
+    (o.galleryImage?'<div><b>תמונת פאה מהגלריה:</b><br><img src="'+o.galleryImage+'" style="max-width:180px;border-radius:10px;margin-top:6px;border:1px solid var(--border)"></div>':'')+
     (o.phone?'<div>&#x1F4F1; <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a></div>':'')+
     (o.city?'<div>&#x1F4CD; '+esc(o.city)+'</div>':'')+
     '<div>&#x1F4B3; '+esc(o.pay||'')+'</div>'+
@@ -1883,6 +2192,8 @@ function openCustomer(id) {
       '<button class="btn" onclick="openOrderSignedTermsPdf('+id+')">תקנון חתום / PDF</button>'+ 
       '<button class="btn" onclick="downloadOrderSignedTerms('+id+')">הורדת תמונה חתומה</button>'+ 
       '<button class="btn" onclick="copyManufacturerOrderById('+id+')">העתק הודעה ליצרן</button>'+ 
+      '<button class="btn" onclick="openManufacturerPdf('+id+')">PDF יצרן</button>'+ 
+      '<button class="btn" onclick="downloadManufacturerImage('+id+')">תמונת יצרן</button>'+ 
       '<button class="btn btn-blue" onclick="resendManufacturerById('+id+')">שלח שוב ליצרן</button>'+ 
       '<button class="btn" onclick="copyText((getOrderById('+id+').fullOrderText||\'\')).then(function(){toast(\'טופס מלא הועתק\')})">העתק טופס מלא</button>'+ 
     '</div></div>'+
@@ -2233,6 +2544,107 @@ function toggleGalList() {
   }
 }
 applyDark();
+
+function showOrderSuccess(){
+  try{
+    var orderModal=document.getElementById('order-modal');
+    if(orderModal) orderModal.classList.remove('open');
+    var ts=document.getElementById('terms-send-modal');
+    if(ts) ts.classList.remove('open');
+    var lb=document.getElementById('lightbox');
+    if(lb) lb.classList.remove('open');
+    var modal=document.getElementById('order-success-modal');
+    if(modal) modal.classList.add('open');
+  }catch(e){}
+}
+function closeOrderSuccess(){
+  try{
+    var modal=document.getElementById('order-success-modal');
+    if(modal) modal.classList.remove('open');
+    if(typeof showPage==='function') showPage('price');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }catch(e){
+    location.hash='';
+  }
+}
+
+
+function resetOrderFormForNewOrder(){
+  try{
+    // איפוס בחירת גלריה והזמנה קודמת
+    window.currentOrder = null;
+    window.currentPreparedOrderId = null;
+    window.selectedGalleryItemForOrder = null;
+
+    // איפוס שלבים
+    if(typeof goOrderStep === 'function') goOrderStep(1);
+    document.querySelectorAll('.order-step').forEach(function(el,i){
+      el.classList.toggle('active', i===0);
+    });
+    document.querySelectorAll('.order-screen').forEach(function(el,i){
+      el.classList.toggle('active', i===0);
+    });
+
+    // איפוס שדות טופס רכישה
+    [
+      'wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style',
+      'wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
+      'terms-whatsapp-phone','terms-email'
+    ].forEach(function(id){
+      var el=document.getElementById(id);
+      if(!el) return;
+      el.disabled=false; el.readOnly=false; el.classList.remove('locked-from-gallery');
+      if(el.tagName==='SELECT') el.selectedIndex=0;
+      else el.value='';
+    });
+
+    // איפוס אישורים
+    ['terms-ok','customer-approved','terms-check'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.checked=false;
+    });
+
+    // איפוס תצוגות טקסט/קופסאות
+    ['order-copy-box','manufacturer-copy-box','gallery-order-preview','gallery-lock-box'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el){
+        if(id==='gallery-order-preview' || id==='gallery-lock-box') el.style.display='none';
+        else el.textContent='';
+      }
+    });
+
+    // איפוס חתימה
+    if(typeof clearSignature === 'function') clearSignature();
+    else{
+      var c=document.getElementById('sig-canvas');
+      if(c){
+        var ctx=c.getContext('2d');
+        ctx.clearRect(0,0,c.width,c.height);
+      }
+    }
+
+    // איפוס תמונת/נתוני גלריה אם יש אלמנטים
+    var gprev=document.getElementById('gallery-order-preview');
+    if(gprev) gprev.innerHTML='';
+  }catch(e){
+    console.warn('resetOrderFormForNewOrder failed', e);
+  }
+}
+
+
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    try{
+      var rateEl = document.getElementById('usd-rate');
+      if(rateEl && (!rateEl.textContent || rateEl.textContent.trim()==='')){
+        rateEl.textContent = '₪' + (window.DEFAULT_USD_ILS_RATE || 3.65).toFixed(2) + ' *';
+      }
+      if(typeof renderAll === 'function') renderAll();
+      if(typeof renderPrices === 'function') renderPrices();
+    }catch(e){}
+  }, 1200);
+});
+
 </script>
 
 <div id="report-modal">
