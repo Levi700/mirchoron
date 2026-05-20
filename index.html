@@ -103,6 +103,7 @@ tr:active td{background:var(--hbg)}
 #pin-input{width:150px;text-align:center;letter-spacing:8px;font-size:24px;font-weight:700;border:1px solid var(--border);border-radius:8px;padding:9px 12px;background:var(--bg);color:var(--text);outline:none}
 #pin-err{color:var(--danger);font-size:13px;margin-top:8px;min-height:18px}
 #content-wrap{display:none}
+#content-wrap #admin-customers{display:none}
 .item-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
 .item-row:last-child{border-bottom:none}
 .item-info{flex:1;font-size:13px}
@@ -547,7 +548,6 @@ body.dark-mode{--bg:#1a1a1a;--card:#242424;--border:#333;--text:#f0f0f0;--muted:
       <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
       </div><!-- /admin-pricelist -->
 
-      </div><!-- /admin-pricelist -->
       <div id="admin-customers">
         <div class="sec-title">סיכום</div>
         <div class="crm-summary" id="adm-summary"></div>
@@ -812,6 +812,11 @@ function openAdmin() {
   document.getElementById('content-wrap').style.display = 'none';
   document.getElementById('pin-input').value = '';
   document.getElementById('pin-err').textContent = '';
+  // איפוס בטוח: לפני כניסה לא מציגים שום אזור ניהול
+  document.getElementById('admin-pricelist').style.display = 'block';
+  document.getElementById('admin-customers').style.display = 'none';
+  document.getElementById('atab-price').className = 'admin-tab active';
+  document.getElementById('atab-customers').className = 'admin-tab';
   document.getElementById('overlay').classList.add('open');
   setTimeout(() => document.getElementById('pin-input').focus(), 300);
 }
