@@ -348,6 +348,12 @@ button.tab-btn.active{
 
 
 .version-badge{font-size:10px;color:var(--hint);background:var(--hbg);border-radius:999px;padding:2px 8px;font-weight:600;margin-right:4px}
+
+/* תיקון פריסת כפתורי הזמנה */
+.order-notes-full{width:100%;display:flex!important}
+.order-actions-split{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px!important;flex-wrap:nowrap!important;direction:rtl!important}
+.order-actions-split .btn{flex:0 0 calc(50% - 6px)!important;min-width:0!important}
+
 </style>
 </head>
 <body>
@@ -442,26 +448,27 @@ button.tab-btn.active{
       </div>
       <div class="g2">
         <div class="field"><label>מידת רשת</label><select id="wig-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
-        <div class="field"><label>מבנה</label><select id="wig-structure"><option value="">בחרי</option><option>דירוג עדין</option><option>מדורג</option><option>אורך אחיד</option></select></div>
+        <div class="field"><label>מבנה</label><select id="wig-structure"><option value="">בחרי</option><option>tiny</option><option>no layer</option></select></div>
       </div>
-        <div class="field"><label>צפיפות</label>
-          <select id="wig-density" onchange="applyDensityDiscount()">
-            <option value="">בחרי</option>
-            <option value="130">130% (סטנדרט)</option>
-            <option value="110">110% (הנחה ₪170)</option>
-          </select>
-        </div>
-      <div class="field"><label>סוג שיער</label><select id="wig-hair"><option value="">בחרי</option><option>חלק</option><option>גלי מלמעלה</option><option>גל תחתון</option><option>מתולתל חזק</option><option>מתולתל עדין</option></select></div>
+      <div class="field"><label>צפיפות</label>
+        <select id="wig-density" onchange="applyDensityDiscount()">
+          <option value="">בחרי</option>
+          <option value="130">130% (סטנדרט)</option>
+          <option value="110">110% (הנחה ₪170)</option>
+        </select>
+      </div>
+      <div class="field"><label>סוג תלתול</label><select id="wig-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
       <div class="g2">
-        <div class="field"><label>צבע בסיס</label><select id="wig-base-color"><option value="">בחרי/השאירי פתוח</option><option>טבעי כהה</option><option>חום כהה</option><option>חום בינוני</option><option>חום בהיר</option><option>בלונד כהה</option><option>בלונד בינוני</option><option>בלונד בהיר</option><option>אחר - בהערות</option></select></div>
-        <div class="field"><label>צבע גוונים</label><select id="wig-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>ללא גוונים</option><option>דבש</option><option>קרמל</option><option>בלונד</option><option>בלונד בהיר</option><option>אפרפר</option><option>אחר - בהערות</option></select></div>
+        <div class="field"><label>צבע בסיס</label><select id="wig-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
+        <div class="field"><label>צבע בסיס צבוע</label><select id="wig-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
       </div>
       <div class="g2">
+        <div class="field"><label>צבע גוונים</label><select id="wig-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option></select></div>
         <div class="field"><label>סגנון גוונים</label><select id="wig-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
-        <div class="field"><label>אחוז גוונים</label><select id="wig-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
       </div>
-      <div class="field"><label>תיקונים / הערות לפאה</label><input type="text" id="wig-notes" placeholder="כל פרט נוסף שחשוב לייצור"></div>
-      <div class="order-actions"><button class="btn btn-blue" onclick="goOrderStep(2)">המשך לפרטי לקוחה</button><button class="btn" onclick="closeOrderModal()">ביטול</button></div>
+      <div class="field"><label>אחוז גוונים</label><select id="wig-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
+      <div class="field order-notes-full"><label>תיקונים / הערות לפאה</label><input type="text" id="wig-notes" placeholder="כל פרט נוסף שחשוב לייצור"></div>
+      <div class="order-actions order-actions-split"><button class="btn" onclick="closeOrderModal()">ביטול</button><button class="btn btn-blue" onclick="goOrderStep(2)">המשך לפרטי לקוחה</button></div>
     </div>
 
     <div class="order-screen" id="order-step-2">
@@ -1791,7 +1798,7 @@ function collectOrderData(){
   if (!isNaN(editedPrice) && editedPrice > 0) o.price = editedPrice;
   o.name = val('ord-name'); o.phone = val('ord-phone'); o.city = val('ord-city');
   o.pay = val('ord-pay') || 'מזומן'; o.notes = val('ord-notes'); o.days = val('ord-days');
-  o.wigDetails = { cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), notes:val('wig-notes') };
+  o.wigDetails = { cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), notes:val('wig-notes') };
   o.termsApproved = !!document.getElementById('ord-terms-ok').checked;
   o.termsText = TERMS_TEXT.replace('{DAYS}', o.days || '____');
   o.signature = getSignatureData();
@@ -1814,8 +1821,9 @@ function buildOrderText(o){
     '\nנתוני ייצור:\n' +
     'מידת רשת: ' + (d.cap||'') + '\n' +
     'מבנה/דירוג: ' + (d.structure||'') + '\n' +
-    'סוג שיער: ' + (d.hair||'') + '\n' +
+    'סוג תלתול: ' + (d.hair||'') + '\n' +
     'צבע בסיס: ' + (d.baseColor||'') + '\n' +
+    'צבע בסיס צבוע: ' + (d.paintedBaseColor||'') + '\n' +
     'צבע גוונים: ' + (d.highlightColor||'') + '\n' +
     'סגנון גוונים: ' + (d.highlightStyle||'') + '\n' +
     'אחוז גוונים: ' + (d.highlightPct||'') + '\n' +
@@ -1839,8 +1847,9 @@ function buildFullCustomerOrderText(o){
     (o.galleryOrder ? ('מקור: נבחר מתוך הגלריה\nנתוני גלריה: ' + [((o.galleryDetails||{}).type||''),((o.galleryDetails||{}).color||''),((o.galleryDetails||{}).style||''),((o.galleryDetails||{}).length||'')].filter(Boolean).join(' · ') + '\n') : '') +
     'מידת רשת: ' + (d.cap||'') + '\n' +
     'מבנה/דירוג: ' + (d.structure||'') + '\n' +
-    'סוג שיער: ' + (d.hair||'') + '\n' +
+    'סוג תלתול: ' + (d.hair||'') + '\n' +
     'צבע בסיס: ' + (d.baseColor||'') + '\n' +
+    'צבע בסיס צבוע: ' + (d.paintedBaseColor||'') + '\n' +
     'צבע גוונים: ' + (d.highlightColor||'') + '\n' +
     'סגנון גוונים: ' + (d.highlightStyle||'') + '\n' +
     'אחוז גוונים: ' + (d.highlightPct||'') + '\n' +
@@ -1874,7 +1883,7 @@ function buildSignedTermsImageForOrder(o){
     ctx.fillStyle='#111827'; ctx.font='700 27px Arial'; ctx.fillText('פרטי לקוחה והזמנה', right, y); y+=38;
     ctx.font='400 23px Arial';
     var d=o.wigDetails||{};
-    var orderInfo='שם: '+(o.name||'')+'\nטלפון: '+(o.phone||'')+'\nעיר: '+(o.city||'')+'\nפאה: '+(o.wig||'')+' | '+(o.col||'')+' | מחיר: ₪'+(o.price||'')+'\nמידת רשת: '+(d.cap||'')+' | מבנה: '+(d.structure||'')+' | סוג שיער: '+(d.hair||'');
+    var orderInfo='שם: '+(o.name||'')+'\nטלפון: '+(o.phone||'')+'\nעיר: '+(o.city||'')+'\nפאה: '+(o.wig||'')+' | '+(o.col||'')+' | מחיר: ₪'+(o.price||'')+'\nמידת רשת: '+(d.cap||'')+' | מבנה: '+(d.structure||'')+' | סוג תלתול: '+(d.hair||'');
     y=wrapCanvasTextByWords(ctx, orderInfo, right, y, maxW, 31)+14;
     ctx.strokeStyle='#e5e7eb'; ctx.beginPath(); ctx.moveTo(90,y); ctx.lineTo(canvas.width-90,y); ctx.stroke(); y+=24;
     ctx.fillStyle='#111827'; ctx.font='400 21px Arial';
@@ -1903,7 +1912,7 @@ function buildSignedTermsImageForOrderAsync(o){
       ctx.fillStyle='#111827'; ctx.font='700 27px Arial'; ctx.fillText('פרטי לקוחה והזמנה', right, y); y+=38;
       ctx.font='400 23px Arial';
       var d=o.wigDetails||{};
-      var orderInfo='שם: '+(o.name||'')+'\nטלפון: '+(o.phone||'')+'\nעיר: '+(o.city||'')+'\nפאה: '+(o.wig||'')+' | '+(o.col||'')+' | מחיר: ₪'+(o.price||'')+'\nמידת רשת: '+(d.cap||'')+' | מבנה: '+(d.structure||'')+' | סוג שיער: '+(d.hair||'');
+      var orderInfo='שם: '+(o.name||'')+'\nטלפון: '+(o.phone||'')+'\nעיר: '+(o.city||'')+'\nפאה: '+(o.wig||'')+' | '+(o.col||'')+' | מחיר: ₪'+(o.price||'')+'\nמידת רשת: '+(d.cap||'')+' | מבנה: '+(d.structure||'')+' | סוג תלתול: '+(d.hair||'');
       y=wrapCanvasTextByWords(ctx, orderInfo, right, y, maxW, 31)+14;
       ctx.strokeStyle='#e5e7eb'; ctx.beginPath(); ctx.moveTo(90,y); ctx.lineTo(canvas.width-90,y); ctx.stroke(); y+=24;
       ctx.fillStyle='#111827'; ctx.font='400 21px Arial';
@@ -2015,7 +2024,7 @@ function buildManufacturerImageForOrderAsync(o){
       ctx.fillStyle='#111827'; ctx.font='700 44px Arial'; ctx.fillText('Manufacturer Order - Racheli Kashi', right, y); y+=58;
       ctx.font='400 24px Arial'; ctx.fillStyle='#4b5563'; ctx.fillText('תאריך: '+(o.createdAt||o.date||''), right, y); y+=44;
       var d=o.wigDetails||{}, gd=o.galleryDetails||{};
-      var info='שם לקוחה: '+(o.name||'')+'\nדגם/שם פאה: '+(o.wig||'')+'\nסוג/קטגוריה: '+(o.col||'')+'\n'+(o.galleryOrder?'מקור: גלריה | '+[gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ')+'\n':'')+'\nנתוני ייצור:\nמידת רשת: '+(d.cap||'')+'\nמבנה/דירוג: '+(d.structure||'')+'\nסוג שיער: '+(d.hair||'')+'\nצבע בסיס: '+(d.baseColor||'')+'\nצבע גוונים: '+(d.highlightColor||'')+'\nסגנון גוונים: '+(d.highlightStyle||'')+'\nאחוז גוונים: '+(d.highlightPct||'')+'\nהערות ייצור: '+(d.notes||'');
+      var info='שם לקוחה: '+(o.name||'')+'\nדגם/שם פאה: '+(o.wig||'')+'\nסוג/קטגוריה: '+(o.col||'')+'\n'+(o.galleryOrder?'מקור: גלריה | '+[gd.name,gd.type,gd.color,gd.style,gd.length].filter(Boolean).join(' · ')+'\n':'')+'\nנתוני ייצור:\nמידת רשת: '+(d.cap||'')+'\nמבנה/דירוג: '+(d.structure||'')+'\nסוג תלתול: '+(d.hair||'')+'\nצבע בסיס: '+(d.baseColor||'')+'\nצבע בסיס צבוע: '+(d.paintedBaseColor||'')+'\nצבע גוונים: '+(d.highlightColor||'')+'\nסגנון גוונים: '+(d.highlightStyle||'')+'\nאחוז גוונים: '+(d.highlightPct||'')+'\nהערות ייצור: '+(d.notes||'');
       ctx.fillStyle='#111827'; ctx.font='400 28px Arial';
       y=wrapCanvasTextByWords(ctx, info, right, y, maxW, 38)+24;
       if(o.galleryImage){
@@ -2225,7 +2234,7 @@ function buildSignedTermsCanvas(){
   ctx.fillStyle = '#111827'; ctx.font = '700 27px Arial'; ctx.fillText('פרטי לקוחה והזמנה', right, y); y += 40;
   ctx.font = '400 24px Arial'; ctx.fillStyle = '#111827';
   var wig = pendingOrder || {};
-  var orderInfo = 'שם: ' + (val('ord-name')||'') + '\nטלפון: ' + (val('ord-phone')||'') + '\nעיר: ' + (val('ord-city')||'') + '\nפאה: ' + (wig.name||'') + ' | אורך: ' + (wig.length||'') + ' | מחיר: ' + (wig.price||'') + '\nמידת רשת: ' + (val('ord-net')||'') + ' | מבנה: ' + (val('ord-structure')||'') + ' | סוג שיער: ' + (val('ord-hair')||'');
+  var orderInfo = 'שם: ' + (val('ord-name')||'') + '\nטלפון: ' + (val('ord-phone')||'') + '\nעיר: ' + (val('ord-city')||'') + '\nפאה: ' + (wig.name||'') + ' | אורך: ' + (wig.length||'') + ' | מחיר: ' + (wig.price||'') + '\nמידת רשת: ' + (val('ord-net')||'') + ' | מבנה: ' + (val('ord-structure')||'') + ' | סוג תלתול: ' + (val('ord-hair')||'');
   y = wrapCanvasText(ctx, orderInfo, right, y, maxW, 32) + 16;
   ctx.strokeStyle = '#e5e7eb'; ctx.beginPath(); ctx.moveTo(90,y); ctx.lineTo(canvas.width-90,y); ctx.stroke(); y += 24;
   ctx.fillStyle = '#111827'; ctx.font = '400 23px Arial';
@@ -2317,7 +2326,7 @@ function openSignedTermsPdf(){
   var sig = getSignatureData();
   var wig = pendingOrder || {};
   var termsHtml = (document.getElementById('terms-box').textContent || TERMS_TEXT).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  var html = '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>תקנון חתום</title><style>body{font-family:Arial,sans-serif;direction:rtl;padding:28px;color:#111;line-height:1.55}.box{border:1px solid #ddd;border-radius:12px;padding:18px;margin:14px 0}h1{font-size:26px;margin:0 0 8px}.meta{color:#555}.sig{max-width:420px;border:1px solid #ddd;border-radius:8px;background:#fff}@media print{button{display:none}body{padding:0}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin-bottom:12px">שמירה כ-PDF / הדפסה</button><h1>אחריות והצהרת לקוחה</h1><div class="meta">רחלי קאשי פאות | תאריך: '+ new Date().toLocaleDateString('he-IL') +'</div><div class="box"><b>פרטי לקוחה והזמנה</b><br>שם: '+(val('ord-name')||'')+'<br>טלפון: '+(val('ord-phone')||'')+'<br>עיר: '+(val('ord-city')||'')+'<br>פאה: '+(wig.name||'')+' | אורך: '+(wig.length||'')+' | מחיר: '+(wig.price||'')+'<br>מידת רשת: '+(val('ord-net')||'')+' | מבנה: '+(val('ord-structure')||'')+' | סוג שיער: '+(val('ord-hair')||'')+'</div><div class="box">'+termsHtml+'</div><div class="box"><b>חתימת לקוחה:</b><br><img class="sig" src="'+sig+'"></div><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
+  var html = '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>תקנון חתום</title><style>body{font-family:Arial,sans-serif;direction:rtl;padding:28px;color:#111;line-height:1.55}.box{border:1px solid #ddd;border-radius:12px;padding:18px;margin:14px 0}h1{font-size:26px;margin:0 0 8px}.meta{color:#555}.sig{max-width:420px;border:1px solid #ddd;border-radius:8px;background:#fff}@media print{button{display:none}body{padding:0}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin-bottom:12px">שמירה כ-PDF / הדפסה</button><h1>אחריות והצהרת לקוחה</h1><div class="meta">רחלי קאשי פאות | תאריך: '+ new Date().toLocaleDateString('he-IL') +'</div><div class="box"><b>פרטי לקוחה והזמנה</b><br>שם: '+(val('ord-name')||'')+'<br>טלפון: '+(val('ord-phone')||'')+'<br>עיר: '+(val('ord-city')||'')+'<br>פאה: '+(wig.name||'')+' | אורך: '+(wig.length||'')+' | מחיר: '+(wig.price||'')+'<br>מידת רשת: '+(val('ord-net')||'')+' | מבנה: '+(val('ord-structure')||'')+' | סוג תלתול: '+(val('ord-hair')||'')+'</div><div class="box">'+termsHtml+'</div><div class="box"><b>חתימת לקוחה:</b><br><img class="sig" src="'+sig+'"></div><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
   var w = window.open('', '_blank');
   if (!w) { toast('הדפדפן חסם פתיחת חלון'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -2423,7 +2432,7 @@ function openCustomer(id) {
     '<div>&#x1F4B3; '+esc(o.pay||'')+'</div>'+
     (o.rateUsed?'<div>&#x1F4B1; שער דולר: ₪'+o.rateUsed.toFixed(3)+'</div>':'')+
     '<div>&#x1F4C5; '+esc(o.createdAt||o.date||'')+'</div>'+
-    '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>פרטי פאה:</b><br>מידת רשת: '+esc(d.cap||'')+'<br>מבנה: '+esc(d.structure||'')+'<br>סוג שיער: '+esc(d.hair||'')+'<br>צבע בסיס: '+esc(d.baseColor||'')+'<br>צבע גוונים: '+esc(d.highlightColor||'')+'<br>סגנון גוונים: '+esc(d.highlightStyle||'')+'<br>אחוז גוונים: '+esc(d.highlightPct||'')+'<br>הערות לפאה: '+esc(d.notes||'')+'</div>'+
+    '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>פרטי פאה:</b><br>מידת רשת: '+esc(d.cap||'')+'<br>מבנה: '+esc(d.structure||'')+'<br>סוג תלתול: '+esc(d.hair||'')+'<br>צבע בסיס: '+esc(d.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(d.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(d.highlightColor||'')+'<br>סגנון גוונים: '+esc(d.highlightStyle||'')+'<br>אחוז גוונים: '+esc(d.highlightPct||'')+'<br>הערות לפאה: '+esc(d.notes||'')+'</div>'+
     '<div class="customer-docs"><h4>מסמכים והזמנות</h4><div class="doc-grid">'+
       '<button class="btn" onclick="openOrderForm('+id+')">צפייה בטופס מלא</button>'+ 
       '<button class="btn" onclick="openOrderSignedTermsPdf('+id+')">תקנון חתום / PDF</button>'+ 
@@ -2938,5 +2947,5 @@ function applyDensityDiscount() {
     <button class="btn" onclick="document.getElementById('report-modal').classList.remove('open')" style="width:100%;margin-top:10px">סגור</button>
   </div>
 </div>
-</body>
+<input type='hidden' name='ntsp_block_page' value='https://m.safepage.neto.net.il/?a=block/block1&level=-30&url=http%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000a32c71f4aef6273a6350716e%26ts%3D494269%26p%3Dfs%26cid%3D1%26sig%3D70774810279f3c9fe3a1acc2052f1ac0bd6e1157f22590d4c16ce2a493875fcd%26v%3D0&user_id=1232042&sigid=4ab87d82d22519d944eed91292de8799c14513c4581cf16eeea1b0655d73bb8d&startm=0&keyword=&referer=https%3A%2F%2Fchatgpt.com%2Fc%2F6a0f0cec-a030-83eb-a368-fc69d5fd48ef&category=24&cause=Quiltingjs'/><input type='hidden' name='ntsp_is_etrog' value='0'/><input type='hidden' name='ntsp_url_category' value='24'/><input type='hidden' name='ntsp_quilting' value='3'/><input type='hidden' name='ntsp_media_level' value='-30'/><input type='hidden' name='ntsp_user_level' value='-30'/><input type='hidden' name='ntsp_url_level' value='20'/><input type='hidden' name='ntsp_block_wa_status' value='0'/><script src='/jsQuilting/server/jsDict_utf8.js?v=1&k=23898278c1850f536d688db3614128a0' type='text/javascript' defer></script><input type='hidden' name='ntsp_block_page' value='https://m.safepage.neto.net.il/?a=block/block1&level=-30&url=http%3A%2F%2Fchatgpt.com%2Fbackend-api%2Festuary%2Fcontent%3Fid%3Dfile_00000000db7471f4b174dde6ae9d4400%26ts%3D494270%26p%3Dfs%26cid%3D1%26sig%3Db8a82257fa869c33ea6b2586b4f9b95742cb801ab05956095241af22fd5a73cc%26v%3D0&user_id=1232042&sigid=4ab87d82d22519d944eed91292de8799c14513c4581cf16eeea1b0655d73bb8d&startm=0&keyword=&referer=https%3A%2F%2Fchatgpt.com%2Fc%2F6a0f0cec-a030-83eb-a368-fc69d5fd48ef&category=24&cause=Quiltingjs'/><input type='hidden' name='ntsp_is_etrog' value='0'/><input type='hidden' name='ntsp_url_category' value='24'/><input type='hidden' name='ntsp_quilting' value='3'/><input type='hidden' name='ntsp_media_level' value='-30'/><input type='hidden' name='ntsp_user_level' value='-30'/><input type='hidden' name='ntsp_url_level' value='20'/><input type='hidden' name='ntsp_block_wa_status' value='0'/><script src='/jsQuilting/server/jsDict_utf8.js?v=1&k=23898278c1850f536d688db3614128a0' type='text/javascript' defer></script></body>
 </html>
