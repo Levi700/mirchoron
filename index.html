@@ -503,9 +503,9 @@ button.tab-btn.active{
       </div>
       <div class="g2">
         <div class="field"><label>צבע גוונים</label><select id="wig-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option></select></div>
-
-      <div class="g2">
         <div class="field"><label>סגנון גוונים</label><select id="wig-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
+      </div>
+      <div class="g2">
         <div class="field"><label>אחוז גוונים</label><select id="wig-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
       </div>
       <div class="field"><label>תיקונים / הערות לפאה</label><input type="text" id="wig-notes" placeholder="כל פרט נוסף שחשוב לייצור"></div>
@@ -1259,7 +1259,10 @@ function checkPin() {
     document.getElementById('pin-input').focus();
   }
 }
-document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+document.addEventListener('DOMContentLoaded', function() {
+  var pinInput = document.getElementById('pin-input');
+  if (pinInput) pinInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPin(); });
+});
 
 function loadAdminFields() {
   document.getElementById('cfg-com').value = cfg.commission;
@@ -3187,7 +3190,7 @@ function applyDensityDiscount() {
     var rate = usdRate || lastRate || 0;
     var discount = 170;
     priceEl.value = Math.max(0, basePrice - discount);
-    if (noteEl) noteEl.textContent = 'הנחה: ₪160';
+    if (noteEl) noteEl.textContent = 'הנחה: ₪170';
   } else {
     priceEl.value = basePrice;
     if (noteEl) noteEl.textContent = '';
