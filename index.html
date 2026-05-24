@@ -718,36 +718,32 @@ button.tab-btn.active{
       <div class="sec-title">ניהול גלריה</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">לפאה עם כמה תמונות — השתמש באותו שם בדיוק.</p>
       <div class="field"><label>שם הפאה</label><input type="text" id="gal-name" placeholder='למשל: פאה בלונד גלי 16"'></div>
-      <div class="g3">
-        <div class="field">
-          <label>סוג</label>
-          <select id="gal-type">
-            <option value="פאת סקין">פאת סקין</option>
-            <option value="פאת לייס טופ">פאת לייס טופ</option>
-            <option value="פאת סרט">פאת סרט</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>צבע</label>
-          <select id="gal-color">
-            <option value="שחור">שחור</option>
-            <option value="חום">חום</option>
-            <option value="בלונד">בלונד</option>
-            <option value="בלונד בהיר">בלונד בהיר</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>סגנון</label>
-          <select id="gal-style">
-            <option value="חלק">חלק</option>
-            <option value="גל תחתון">גל תחתון</option>
-            <option value="גל עליון">גל עליון</option>
-            <option value="תלתלים">תלתלים</option>
-          </select>
-        </div>
+      <div class="g2">
+        <div class="field"><label>סוג פאה</label><select id="gal-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select></div>
+        <div class="field"><label>אורך</label><select id="gal-length"><option value='10"'>10"</option><option value='12"'>12"</option><option value='14"'>14"</option><option value='16"' selected>16"</option><option value='18"'>18"</option><option value='20"'>20"</option><option value='22"'>22"</option><option value='24"'>24"</option><option value='26"'>26"</option><option value='28"'>28"</option><option value='30"'>30"</option></select></div>
       </div>
-      <div class="field"><label>אורך</label><select id="gal-length"><option value='10"'>10"</option><option value='12"'>12"</option><option value='14"'>14"</option><option value='16"' selected>16"</option><option value='18"'>18"</option><option value='20"'>20"</option><option value='22"'>22"</option><option value='24"'>24"</option><option value='26"'>26"</option><option value='28"'>28"</option><option value='30"'>30"</option></select></div>
-      <div class="field"><label>בחר תמונה מהטאבלט</label><input type="file" id="gal-file" accept="image/*" multiple style="font-size:14px;padding:8px 0"></div>
+      <div class="g2">
+        <div class="field"><label>מבנה</label><select id="gal-structure"><option value="">בחרי</option><option value="tiny">דירוג קל</option><option value="no layer">ללא דירוג</option></select></div>
+        <div class="field"><label>מידת רשת</label><select id="gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
+      </div>
+      <div class="field"><label>סוג תלתול</label><select id="gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+      <div class="g2">
+        <div class="field"><label>צבע בסיס</label><select id="gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
+        <div class="field"><label>צבע בסיס צבוע</label><select id="gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>צבע גוונים</label><select id="gal-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+        <div class="field"><label>סגנון גוונים</label><select id="gal-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>אחוז גוונים</label><select id="gal-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
+        <div class="field"><label>שביל צד</label><select id="gal-part"><option value="">ללא שביל</option><option value="Path to the right, hair to the left">שביל ימין</option><option value="Path to the left, hair to the right">שביל שמאל</option></select></div>
+      </div>
+      <div class="field"><label>בחר תמונה מהטאבלט</label><input type="file" id="gal-file" accept="image/*" multiple style="font-size:14px;padding:8px 0" onchange="showGalPreview(this)"></div>
+      <div id="gal-preview-area" style="display:none;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">תצוגה מקדימה — לחץ על תמונה להגדלה:</div>
+        <div id="gal-preview-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+      </div>
       <button class="btn btn-blue" onclick="addGalPhoto()" style="width:100%">+ הוסף תמונה לגלריה</button>
       <button class="btn" onclick="toggleGalList()" id="gal-list-btn" style="width:100%;margin-top:8px">&#x25BC; \u05e4\u05d0\u05d5\u05ea \u05e9\u05d4\u05d5\u05e1\u05e4\u05ea\u05d9</button>
       <div id="gal-admin-list" style="display:none;margin-top:6px"></div>
@@ -1667,7 +1663,19 @@ function openOrderFromGallery(){
   document.getElementById('order-copy-preview').textContent = '';
   var actions=document.getElementById('order-send-actions'); if(actions) actions.style.display='none';
   setGalleryLockedFields(true);
-  setOrderFixedFields('gallery', {wigType: (p.type==='פאת סקין'?'silk top':(p.type==='פאת לייס טופ'?'lace top':(p.type==='פאת סרט'?'band fall':''))), len: p.length||'', structure:''});
+  setOrderFixedFields('gallery', {wigType: p.type||'', len: p.length||'', structure: p.structure||''});
+  // מלא את שאר השדות מהגלריה
+  setTimeout(function(){
+    ['wig-cap','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct','wig-part'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    setSelectIfOption('wig-cap',              p.cap);
+    setSelectIfOption('wig-hair',             p.hair);
+    setSelectIfOption('wig-base-color',       p.baseColor);
+    setSelectIfOption('wig-painted-base-color', p.paintedBaseColor);
+    setSelectIfOption('wig-highlight-color',  p.highlightColor);
+    setSelectIfOption('wig-highlight-style',  p.highlightStyle);
+    setSelectIfOption('wig-highlight-pct',    p.highlightPct);
+    setSelectIfOption('wig-part',             p.part);
+  }, 50);
   document.getElementById('order-modal').classList.add('open');
   goOrderStep(1);
   setTimeout(initSignaturePad, 100);
@@ -1735,33 +1743,50 @@ function compressImage(dataUrl, callback) {
 }
 
 function addGalPhoto() {
-  const name   = document.getElementById('gal-name').value.trim();
-  const type   = document.getElementById('gal-type').value;
-  const color  = document.getElementById('gal-color').value;
-  const style  = document.getElementById('gal-style').value;
-  const length = document.getElementById('gal-length').value;
-  const files  = document.getElementById('gal-file').files;
+  const name             = document.getElementById('gal-name').value.trim();
+  const type             = document.getElementById('gal-type').value;
+  const length           = document.getElementById('gal-length').value;
+  const structure        = document.getElementById('gal-structure').value;
+  const cap              = document.getElementById('gal-cap').value;
+  const hair             = document.getElementById('gal-hair').value;
+  const baseColor        = document.getElementById('gal-base-color').value;
+  const paintedBaseColor = document.getElementById('gal-painted-base-color').value;
+  const highlightColor   = document.getElementById('gal-highlight-color').value;
+  const highlightStyle   = document.getElementById('gal-highlight-style').value;
+  const highlightPct     = document.getElementById('gal-highlight-pct').value;
+  const part             = document.getElementById('gal-part').value;
+  const files            = document.getElementById('gal-file').files;
   if (!name) { toast('נא למלא שם לפאה'); return; }
   if (!files||files.length===0) { toast('נא לבחור תמונה'); return; }
   var groupId = Date.now() + '_' + Math.random().toString(36).slice(2,7);
   var total = files.length;
   var loaded = 0;
-  Array.from(files).forEach(function(file) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      compressImage(e.target.result, function(compressed) {
-        galPhotos.push({name:name,type:type,color:color,style:style,length:length,url:compressed,groupId:groupId});
+  var previewUrls = window._galPreviewUrls || [];
+  Array.from(files).forEach(function(file, fileIdx) {
+    var editedUrl = previewUrls[fileIdx];
+    function processUrl(dataUrl) {
+      compressImage(dataUrl, function(compressed) {
+        galPhotos.push({name,type,length,structure,cap,hair,baseColor,paintedBaseColor,highlightColor,highlightStyle,highlightPct,part,url:compressed,groupId});
         loaded++;
         if (loaded===total) {
           saveGal();
           renderGallery();
           renderGalAdminList();
           document.getElementById('gal-file').value='';
+          document.getElementById('gal-preview-area').style.display='none';
+          document.getElementById('gal-preview-grid').innerHTML='';
+          window._galPreviewUrls = [];
           toast(loaded + ' תמונות נוספו');
         }
       });
-    };
-    reader.readAsDataURL(file);
+    }
+    if (editedUrl) {
+      processUrl(editedUrl);
+    } else {
+      var reader = new FileReader();
+      reader.onload = function(e) { processUrl(e.target.result); };
+      reader.readAsDataURL(file);
+    }
   });
 }
 
@@ -3372,14 +3397,24 @@ function hslToRgb(h,s,l){
 }
 
 function saveEditedImg() {
-  if (imgEditorIdx === null) return;
   var canvas = document.getElementById('img-editor-canvas');
   var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-  galPhotos[imgEditorIdx].url = dataUrl;
-  saveGal();
-  renderGallery();
-  renderGalAdminList();
-  toast('התמונה נשמרה');
+  if (imgEditorIdx !== null) {
+    // שמירה חזרה לגלריה
+    galPhotos[imgEditorIdx].url = dataUrl;
+    saveGal();
+    renderGallery();
+    renderGalAdminList();
+    toast('התמונה נשמרה');
+  } else if (window._editingPreviewIdx != null) {
+    // שמירה חזרה לתצוגה המקדימה
+    var idx = window._editingPreviewIdx;
+    window._galPreviewUrls[idx] = dataUrl;
+    var imgEl = document.getElementById('gal-prev-img-' + idx);
+    if (imgEl) imgEl.src = dataUrl;
+    toast('התמונה עודכנה בתצוגה המקדימה');
+    window._editingPreviewIdx = null;
+  }
   closeImgEditor();
 }
 
@@ -3393,10 +3428,14 @@ function openInspirationPicker() {
   if (!galPhotos || galPhotos.length === 0) {
     grid.innerHTML = '<p style="font-size:13px;color:var(--hint);grid-column:1/-1">אין תמונות בגלריה</p>';
   } else {
-    galPhotos.forEach(function(p, i) {
+  galPhotos.forEach(function(p, i) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;border-radius:10px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#111';
       var img = document.createElement('img');
       img.src = p.url;
-      img.style.cssText = 'width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid transparent';
+      img.style.cssText = 'width:100%;aspect-ratio:3/4;object-fit:cover;display:block';
+      img.title = p.name || '';
+      // לחיצה קצרה = בחירה, לחיצה ארוכה / כפתור זכוכית = הגדלה
       img.onclick = function() {
         inspoSelected = { idx: i, name: p.name || '' };
         document.getElementById('inspo-img').src = p.url;
@@ -3405,7 +3444,25 @@ function openInspirationPicker() {
         document.getElementById('inspo-pick-btn').textContent = '🖼 החלף תמונה';
         closeInspirationPicker();
       };
-      grid.appendChild(img);
+      // כפתור הגדלה
+      var zoomBtn = document.createElement('button');
+      zoomBtn.type = 'button';
+      zoomBtn.innerHTML = '🔍';
+      zoomBtn.style.cssText = 'position:absolute;top:5px;left:5px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;line-height:1';
+      zoomBtn.onclick = (function(idx2, url, name){ return function(e){
+        e.stopPropagation();
+        openInspoZoom(idx2, url, name);
+      }; })(i, p.url, p.name||'');
+      // שם הפאה
+      if (p.name) {
+        var lbl = document.createElement('div');
+        lbl.textContent = p.name;
+        lbl.style.cssText = 'position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:4px 6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+        wrap.appendChild(lbl);
+      }
+      wrap.appendChild(img);
+      wrap.appendChild(zoomBtn);
+      grid.appendChild(wrap);
     });
   }
   document.getElementById('inspo-picker-modal').style.display = 'block';
@@ -3421,6 +3478,93 @@ function clearInspo() {
   document.getElementById('inspo-note').style.display = 'none';
   document.getElementById('inspo-note').value = '';
   document.getElementById('inspo-pick-btn').textContent = '🖼 בחר תמונת השראה';
+}
+
+var inspoZoomIdx = null;
+function openInspoZoom(idx, url, name) {
+  inspoZoomIdx = idx;
+  document.getElementById('inspo-zoom-img').src = url;
+  document.getElementById('inspo-zoom-modal').style.display = 'flex';
+}
+function closeInspoZoom() {
+  document.getElementById('inspo-zoom-modal').style.display = 'none';
+  inspoZoomIdx = null;
+}
+function selectInspoFromZoom() {
+  if (inspoZoomIdx === null) return;
+  var p = galPhotos[inspoZoomIdx];
+  inspoSelected = { idx: inspoZoomIdx, name: p.name || '' };
+  document.getElementById('inspo-img').src = p.url;
+  document.getElementById('inspo-preview').style.display = 'block';
+  document.getElementById('inspo-note').style.display = 'block';
+  document.getElementById('inspo-pick-btn').textContent = '🖼 החלף תמונה';
+  closeInspoZoom();
+  closeInspirationPicker();
+}
+
+function showGalPreview(input) {
+  var grid = document.getElementById('gal-preview-grid');
+  var area = document.getElementById('gal-preview-area');
+  grid.innerHTML = '';
+  if (!input.files || input.files.length === 0) { area.style.display='none'; return; }
+  area.style.display = 'block';
+  // שמור רשימה של dataURLs הניתנים לעריכה
+  window._galPreviewUrls = [];
+  Array.from(input.files).forEach(function(file, i) {
+    window._galPreviewUrls.push(null); // placeholder
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      window._galPreviewUrls[i] = e.target.result;
+      var wrap = document.createElement('div');
+      wrap.id = 'gal-prev-wrap-' + i;
+      wrap.style.cssText = 'position:relative;border-radius:8px;overflow:hidden;background:#111';
+      var img = document.createElement('img');
+      img.id = 'gal-prev-img-' + i;
+      img.src = e.target.result;
+      img.style.cssText = 'width:100%;aspect-ratio:3/4;object-fit:cover;display:block;cursor:pointer';
+      img.onclick = function() {
+        document.getElementById('gal-preview-zoom-img').src = window._galPreviewUrls[i];
+        document.getElementById('gal-preview-zoom').style.display = 'flex';
+      };
+      // כפתור עריכה
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.innerHTML = '✏️';
+      editBtn.title = 'ערוך תמונה';
+      editBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(37,99,235,0.85);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:13px;cursor:pointer;line-height:1';
+      editBtn.onclick = (function(idx){ return function(e){ e.stopPropagation(); openPreviewEditor(idx); }; })(i);
+      wrap.appendChild(img);
+      wrap.appendChild(editBtn);
+      grid.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function openPreviewEditor(idx) {
+  // פותח את עורך התמונה עם תמונה מהתצוגה המקדימה
+  var url = window._galPreviewUrls[idx];
+  if (!url) return;
+  imgEditorIdx = null; // לא תמונת גלריה
+  window._editingPreviewIdx = idx;
+  var img = new Image();
+  img.onload = function() {
+    var MAX = 900;
+    var w = img.width, h = img.height;
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+      else { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    imgEditorW = w; imgEditorH = h;
+    var canvas = document.getElementById('img-editor-canvas');
+    canvas.width = w; canvas.height = h;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    imgEditorOrigPixels = ctx.getImageData(0, 0, w, h);
+    resetImgSliders();
+    document.getElementById('img-editor-modal').classList.add('open');
+  };
+  img.src = url;
 }
 
 function applyDensityDiscount() {
@@ -3468,11 +3612,26 @@ function applyDensityDiscount() {
 
 <!-- מודל בחירת תמונת השראה -->
 <div id="inspo-picker-modal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.85);overflow-y:auto;padding:16px">
-  <div style="background:var(--card);border-radius:16px;max-width:480px;margin:0 auto;padding:18px;position:relative">
+  <div style="background:var(--card);border-radius:16px;max-width:520px;margin:0 auto;padding:18px;position:relative">
     <button type="button" class="modal-close-x" onclick="closeInspirationPicker()">×</button>
     <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">🖼 בחר תמונת השראה מהגלריה</h3>
-    <div id="inspo-picker-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    <div id="inspo-picker-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px"></div>
   </div>
+</div>
+
+<!-- הגדלת תמונה בפיקר -->
+<div id="inspo-zoom-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.93);align-items:center;justify-content:center;flex-direction:column;gap:14px">
+  <img id="inspo-zoom-img" style="max-width:92vw;max-height:72vh;border-radius:12px;object-fit:contain">
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-blue" id="inspo-zoom-select-btn" onclick="selectInspoFromZoom()" style="font-size:14px">✓ בחר תמונה זו</button>
+    <button class="btn" onclick="closeInspoZoom()" style="font-size:14px">סגור</button>
+  </div>
+</div>
+
+<!-- הגדלת תמונה בתצוגה מקדימה -->
+<div id="gal-preview-zoom" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.93);align-items:center;justify-content:center">
+  <img id="gal-preview-zoom-img" style="max-width:92vw;max-height:88vh;border-radius:12px;object-fit:contain">
+  <button onclick="document.getElementById('gal-preview-zoom').style.display='none'" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button>
 </div>
 
 <div id="report-modal">
