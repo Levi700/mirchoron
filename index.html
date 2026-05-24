@@ -3298,6 +3298,13 @@ function applyImgFilters() {
   var d = out.data;
 
   for (var i = 0; i < src.length; i += 4) {
+    // הגנה על רקע לבן — פיקסלים בהירים מאוד לא משתנים
+    var lum0 = 0.299*src[i] + 0.587*src[i+1] + 0.114*src[i+2];
+    if (lum0 > 230) {
+      d[i] = src[i]; d[i+1] = src[i+1]; d[i+2] = src[i+2]; d[i+3] = src[i+3];
+      continue;
+    }
+
     var r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
     // brightness
