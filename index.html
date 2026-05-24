@@ -555,6 +555,10 @@ button.tab-btn.active{
         <div class="field"><label>אחוז גוונים</label><select id="wig-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
       </div>
       <div class="field"><label>שביל צד</label><select id="wig-part"><option value="">ללא שביל / לא רלוונטי</option><option value="Path to the right, hair to the left">שביל בצד ימין — שיער לכיוון שמאל</option><option value="Path to the left, hair to the right">שביל בצד שמאל — שיער לכיוון ימין</option></select></div>
+      <div class="g2">
+        <div class="field"><label>Baby Hair מהמפעל</label><select id="wig-baby-factory" onchange="applyBabyHairCharge()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+        <div class="field"><label>Baby Hair מהארץ (+₪500)</label><select id="wig-baby-local" onchange="applyBabyHairCharge()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+      </div>
       <div class="field"><label>תיקונים / הערות לפאה</label><input type="text" id="wig-notes" placeholder="כל פרט נוסף שחשוב לייצור"></div>
 
       <!-- תמונת השראה מהגלריה -->
@@ -1205,6 +1209,16 @@ async function fetchRate() {
   const rateEl = document.getElementById('rate-val');
   dot.className = 'dot offline';
   const sources = [
+    // בנק ישראל — שער רשמי ומדויק ביותר
+    async () => {
+      const r = await fetch('https://edge.boi.org.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_USD_ILS?lastNObservations=1&format=sdmx-json&t=' + Date.now(), {cache:'no-store'});
+      const j = await r.json();
+      var obs = j.data.dataSets[0].series['0:0:0:0:0'].observations;
+      var keys = Object.keys(obs);
+      var v = parseFloat(obs[keys[keys.length-1]][0]);
+      if (v > 1) return v;
+      throw new Error('fail');
+    },
     async () => {
       const r = await fetch('https://open.er-api.com/v6/latest/USD?t=' + Date.now(), {cache:'no-store'});
       const j = await r.json();
@@ -1675,7 +1689,7 @@ function openOrderFromGallery(){
     gbox.style.display='block';
     gbox.innerHTML='<div class="gallery-order-preview">'+(p.url?'<img src="'+p.url+'">':'')+'<div><div style="font-weight:800">'+esc(p.name||'')+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5">הנתונים האלו הגיעו מהגלריה ונשמרים אוטומטית בהזמנה:<br>'+esc([p.type,p.color,p.style,p.length].filter(Boolean).join(' · '))+'</div></div></div><div class="gallery-lock-box">הפאה נבחרה מהגלריה. הנתונים מולאו אוטומטית, אבל אפשר לשנות או להשלים כל שדה לפני השליחה ליצרן.</div>';
   }
-  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   applyClientToOrder();
   setSelectIfOption('wig-hair', p.style);
   setSelectIfOption('wig-base-color', p.color);
@@ -2051,7 +2065,7 @@ function openOrderModal(idx) {
   document.getElementById('order-wig-info').innerHTML =
     '<strong>' + esc(item.wig) + '</strong> — ' + esc(item.col) +
     (rateNow ? '<br><span style="font-size:12px;color:var(--muted)">שער דולר עכשיו: ₪' + rateNow.toFixed(3) + '</span>' : '');
-  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   applyClientToOrder();
   setOrderFixedFields('price', item);
   document.getElementById('ord-price').value = item.price;
@@ -2179,7 +2193,7 @@ function collectOrderData(){
   if (!isNaN(editedPrice) && editedPrice > 0) o.price = editedPrice;
   o.name = val('ord-name'); o.phone = val('ord-phone'); o.city = val('ord-city');
   o.pay = val('ord-pay') || 'מזומן'; o.notes = val('ord-notes'); o.days = val('ord-days');
-  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), notes:val('wig-notes') };
+  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), notes:val('wig-notes') };
   o.inspoIdx   = inspoSelected ? inspoSelected.idx : null;
   o.inspoNote  = val('inspo-note');
   o.termsApproved = !!document.getElementById('ord-terms-ok').checked;
@@ -2208,6 +2222,7 @@ function buildOrderText(o){
     line('Highlights style', translateManufacturerValue(d.highlightStyle||'')) +
     line('Highlights percentage', d.highlightPct||'') +
     line('Part side', d.part||'') +
+    line('Baby Hair (factory)', d.babyFactory||'') +
     line('Production notes', d.notes||'') +
     (o.inspoNote ? ('Inspiration note: ' + o.inspoNote + '\n') : '') +
     (o.inspoIdx != null ? '[Inspiration image attached — for reference only, not the final wig]\n' : '');
@@ -3268,7 +3283,7 @@ function resetOrderFormForNewOrder(){
     // איפוס שדות טופס רכישה
     [
       'wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct',
-      'wig-part','wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
+      'wig-part','wig-baby-factory','wig-baby-local','wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
       'terms-whatsapp-phone','terms-email'
     ].forEach(function(id){
       var el=document.getElementById(id);
@@ -3788,6 +3803,15 @@ function saveGalEditDetails() {
   currentAdminLbGroup = enc;
   openAdminLb(enc);
   toast('פרטי הפאה עודכנו');
+}
+
+function applyBabyHairCharge() {
+  var localVal = document.getElementById('wig-baby-local').value;
+  var priceEl = document.getElementById('ord-price');
+  if (!priceEl || !pendingOrder) return;
+  var base = pendingOrder.originalPrice || pendingOrder.price || 0;
+  pendingOrder.originalPrice = base;
+  priceEl.value = localVal ? base + 500 : base;
 }
 
 function applyDensityDiscount() {
