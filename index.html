@@ -3299,7 +3299,48 @@ window.addEventListener('load', function(){
 
 
 
-// ── עורך תמונה ──
+// ── גיבוי אוטומטי יומי ──
+(function(){
+  var today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  var lastBackup = localStorage.getItem('mirchoron_last_auto_backup');
+  if (lastBackup === today) return; // כבר גובה היום
+  // מחכה שהנתונים יטענו
+  setTimeout(function(){
+    try {
+      var backup = {
+        version: APP_VERSION,
+        date: today,
+        gal: galPhotos,
+        orders: typeof orders !== 'undefined' ? orders : [],
+        settings: {
+          commission: localStorage.getItem('mirchoron_v3_commission'),
+          profit:     localStorage.getItem('mirchoron_v3_profit'),
+          vat:        localStorage.getItem('mirchoron_v3_vat'),
+          ops:        localStorage.getItem('mirchoron_v3_ops'),
+          pin:        localStorage.getItem('mirchoron_v3_pin'),
+          items:      localStorage.getItem('mirchoron_v3_items'),
+          sales:      localStorage.getItem('mirchoron_v3_sales'),
+        }
+      };
+      var json = JSON.stringify(backup);
+      var blob = new Blob([json], {type:'application/json'});
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href   = url;
+      a.download = 'mirchoron_backup_' + today + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      localStorage.setItem('mirchoron_last_auto_backup', today);
+      toast('💾 גיבוי יומי הורד אוטומטית');
+    } catch(e) {
+      console.warn('auto backup failed:', e);
+    }
+  }, 2000); // מחכה 2 שניות לטעינת נתונים
+})();
+
+
 var imgEditorIdx = null;
 var imgEditorOrigPixels = null;
 var imgEditorW = 0, imgEditorH = 0;
