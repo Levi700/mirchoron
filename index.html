@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#f8f7f4;--card:#ffffff;--border:#e5e3dc;--text:#1a1a1a;--muted:#6b6b6b;--hint:#b0b0b0;--accent:#2563eb;--accent-bg:#eff6ff;--success:#16a34a;--danger:#dc2626;--hbg:#f1efe8;--sale:#dc2626;--sale-bg:#fff0f0}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:var(--base-font,15px);min-height:100vh}
 #topbar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:8px}
 #topbar h1{font-size:17px;font-weight:700}
 .rate-pill{display:flex;align-items:center;gap:6px;background:var(--hbg);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted);flex-shrink:0}
@@ -80,9 +80,9 @@ tr:active td{background:var(--hbg)}
 
 
 /* OVERLAY */
-#overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.55);overflow-y:auto;padding:16px}
+#overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.55);overflow-y:auto;padding:0}
 #overlay.open{display:block}
-#mgmt-box{background:var(--card);border-radius:16px;width:100%;max-width:500px;margin:0 auto;padding:20px}
+#mgmt-box{background:var(--card);border-radius:0;width:100%;max-width:100%;margin:0;padding:20px;min-height:100vh}
 #mgmt-box h2{font-size:17px;font-weight:700;margin-bottom:4px}
 .sub{font-size:13px;color:var(--muted);margin-bottom:16px}
 .sep{border-top:1px solid var(--border);margin:16px 0}
@@ -115,9 +115,9 @@ tr:active td{background:var(--hbg)}
 .sale-row:last-child{border-bottom:none}
 .sale-row-info{flex:1;font-size:13px}
 
-#admin-lb{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.92);overflow-y:auto;padding:16px}
+#admin-lb{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.92);overflow-y:auto;padding:0}
 #admin-lb.open{display:block}
-#admin-lb-box{background:var(--card);border-radius:16px;max-width:460px;margin:0 auto;padding:18px}
+#admin-lb-box{background:var(--card);border-radius:0;max-width:100%;margin:0;padding:18px;min-height:100vh}
 #admin-lb-box h3{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)}
 .admin-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
 .admin-lb-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:3/4;background:var(--border)}
@@ -162,31 +162,31 @@ tr:active td{background:var(--hbg)}
 .check-row input{margin-top:3px;transform:scale(1.15)}
 
 /* modal שליחת תקנון */
-#terms-send-modal{display:none;position:fixed;inset:0;z-index:650;background:rgba(0,0,0,0.62);overflow-y:auto;padding:16px}
+#terms-send-modal{display:none;position:fixed;inset:0;z-index:650;background:rgba(0,0,0,0.62);overflow-y:auto;padding:0}
 #terms-send-modal.open{display:block}
-#terms-send-box{background:var(--card);border-radius:16px;max-width:460px;margin:0 auto;padding:20px}
+#terms-send-box{background:var(--card);border-radius:0;max-width:100%;margin:0;padding:20px;min-height:100vh}
 #terms-send-box h3{font-size:16px;font-weight:700;margin-bottom:6px}
 .send-choice{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0}
 .send-choice-title{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)}
 
 
 /* modal רכישה */
-#order-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);overflow-y:auto;padding:16px}
+#order-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);overflow-y:auto;padding:0}
 #order-modal.open{display:block}
-#order-box{background:var(--card);border-radius:16px;max-width:460px;margin:0 auto;padding:20px}
+#order-box{background:var(--card);border-radius:0;max-width:100%;margin:0;padding:20px;min-height:100vh}
 #order-box h3{font-size:16px;font-weight:700;margin-bottom:4px}
 #order-box .wig-info{font-size:13px;color:var(--muted);background:var(--hbg);border-radius:8px;padding:8px 12px;margin-bottom:16px}
 #order-box .wig-info strong{color:var(--text)}
 
 /* modal פרטי לקוח */
-#customer-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);overflow-y:auto;padding:16px}
+#customer-modal{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.6);overflow-y:auto;padding:0}
 #customer-modal.open{display:block}
-#customer-box{background:var(--card);border-radius:16px;max-width:460px;margin:0 auto;padding:20px}
+#customer-box{background:var(--card);border-radius:0;max-width:100%;margin:0;padding:20px;min-height:100vh}
 #customer-box h3{font-size:16px;font-weight:700;margin-bottom:16px}
 
-#report-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.6);overflow-y:auto;padding:16px}
+#report-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.6);overflow-y:auto;padding:0}
 #report-modal.open{display:block}
-#report-box{background:var(--card);border-radius:16px;max-width:460px;margin:0 auto;padding:20px}
+#report-box{background:var(--card);border-radius:0;max-width:100%;margin:0;padding:20px;min-height:100vh}
 #report-box h3{font-size:16px;font-weight:700;margin-bottom:16px}
 .report-summary{background:var(--hbg);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px}
 .report-summary strong{font-size:18px;color:var(--accent)}
@@ -241,11 +241,11 @@ button.tab-btn.active{
 
 
 /* ── עורך תמונה ── */
-#img-editor-modal{display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.92);overflow-y:auto;padding:16px}
+#img-editor-modal{display:none;position:fixed;inset:0;z-index:700;background:var(--card);overflow-y:auto;padding:0}
 #img-editor-modal.open{display:flex;align-items:flex-start;justify-content:center}
-#img-editor-box{background:var(--card);border-radius:16px;width:100%;max-width:480px;margin:0 auto;padding:18px;position:relative}
+#img-editor-box{background:var(--card);border-radius:0;width:100%;max-width:100%;margin:0;padding:16px;position:relative;min-height:100vh}
 #img-editor-box h3{font-size:15px;font-weight:700;margin-bottom:12px}
-#img-editor-canvas{width:100%;border-radius:10px;display:block;background:#111;max-height:340px;object-fit:contain}
+#img-editor-canvas{width:100%;border-radius:6px;display:block;background:#111;max-height:50vh;object-fit:contain;touch-action:none}
 .slider-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px}
 .slider-row label{width:80px;flex-shrink:0;color:var(--muted);font-weight:600;text-align:right}
 .slider-row input[type=range]{flex:1;accent-color:var(--accent)}
@@ -627,14 +627,15 @@ button.tab-btn.active{
     </div>
 
     <div id="content-wrap">
-      <div class="admin-tabs">
-        <button class="admin-tab active" id="atab-price" onclick="switchAdminTab('price')">ניהול מחירון</button>
-        <button class="admin-tab" id="atab-customers" onclick="switchAdminTab('customers')">ניהול לקוחות</button>
+      <div class="admin-tabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+        <button class="admin-tab active" id="atab-price"     onclick="switchAdminTab('price')">📋 מחירון</button>
+        <button class="admin-tab"        id="atab-customers" onclick="switchAdminTab('customers')">👤 לקוחות</button>
+        <button class="admin-tab"        id="atab-gallery"   onclick="switchAdminTab('gallery')">🖼 גלריה</button>
+        <button class="admin-tab"        id="atab-settings"  onclick="switchAdminTab('settings')">⚙️ הגדרות</button>
       </div>
+
+      <!-- ── טאב מחירון ── -->
       <div id="admin-pricelist">
-
-
-      <!-- הגדרות חישוב -->
       <div class="sec-title">הגדרות חישוב</div>
       <div class="g2">
         <div class="field"><label>עמלה ($)</label><input type="number" id="cfg-com" min="0" step="1"></div>
@@ -643,135 +644,38 @@ button.tab-btn.active{
         <div class="field"><label>תפעול (%)</label><input type="number" id="cfg-ops" min="0" step="1"></div>
       </div>
       <button class="btn btn-blue" onclick="saveSettings()" style="width:100%">&#10003; שמור הגדרות</button>
-
       <div class="sep"></div>
-
-      <!-- מבצעים -->
       <div class="sec-title">&#x1F525; ניהול מבצעים</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">הגדר הנחה על פריט ספציפי — הלקוחה תראה מחיר מקורי + מחיר מבצע.</p>
       <div class="g2">
-        <div class="field">
-          <label>קטגוריה</label>
-          <select id="sale-cat">
-            <option value="silk">פאת סקין</option>
-            <option value="lace-natural">פאת לייס טופ — צבע טבעי</option>
-            <option value="lace-blonde">פאת לייס טופ — בלונד</option>
-            <option value="lace-light">פאת לייס טופ — בלונד בהיר</option>
-            <option value="bandfall">פאת סרט</option>
-            <option value="all">כל הפריטים</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>עמודה</label>
-          <select id="sale-col">
-            <option value="both">שתי העמודות</option>
-            <option value="col1">עמודה ראשונה</option>
-            <option value="col2">עמודה שנייה</option>
-          </select>
-        </div>
+        <div class="field"><label>קטגוריה</label><select id="sale-cat"><option value="silk">פאת סקין</option><option value="lace-natural">פאת לייס טופ — צבע טבעי</option><option value="lace-blonde">פאת לייס טופ — בלונד</option><option value="lace-light">פאת לייס טופ — בלונד בהיר</option><option value="bandfall">פאת סרט</option><option value="all">כל הפריטים</option></select></div>
+        <div class="field"><label>עמודה</label><select id="sale-col"><option value="both">שתי העמודות</option><option value="col1">עמודה ראשונה</option><option value="col2">עמודה שנייה</option></select></div>
       </div>
       <div class="g2">
         <div class="field"><label>תיאור המבצע</label><input type="text" id="sale-label" placeholder='למשל "מבצע קיץ"'></div>
         <div class="field"><label>אחוז הנחה (%)</label><input type="number" id="sale-pct" min="1" max="90" placeholder="10"></div>
       </div>
       <button class="btn btn-red" onclick="addSale()" style="width:100%">&#x1F525; הוסף מבצע</button>
-
       <div style="margin-top:12px" id="sales-list"></div>
-
       <div class="sep"></div>
-
-      <!-- הוספת פריט -->
       <div class="sec-title">הוסף פריט חדש</div>
       <div class="g2">
-        <div class="field">
-          <label>קטגוריה</label>
-          <select id="new-cat">
-            <option value="silk">פאת סקין</option>
-            <option value="lace-natural">פאת לייס טופ — צבע טבעי</option>
-            <option value="lace-blonde">פאת לייס טופ — בלונד</option>
-            <option value="lace-light">פאת לייס טופ — בלונד בהיר</option>
-            <option value="bandfall">פאת סרט</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>עמודה</label>
-          <select id="new-col">
-            <option value="col1">עמודה ראשונה</option>
-            <option value="col2">עמודה שנייה</option>
-          </select>
-        </div>
+        <div class="field"><label>קטגוריה</label><select id="new-cat"><option value="silk">פאת סקין</option><option value="lace-natural">פאת לייס טופ — צבע טבעי</option><option value="lace-blonde">פאת לייס טופ — בלונד</option><option value="lace-light">פאת לייס טופ — בלונד בהיר</option><option value="bandfall">פאת סרט</option></select></div>
+        <div class="field"><label>עמודה</label><select id="new-col"><option value="col1">עמודה ראשונה</option><option value="col2">עמודה שנייה</option></select></div>
       </div>
       <div class="g2">
         <div class="field"><label>אורך</label><input type="text" id="new-len" placeholder='למשל 28"'></div>
         <div class="field"><label>מחיר גולמי ($)</label><input type="number" id="new-price" min="0" placeholder="0"></div>
       </div>
       <button class="btn btn-blue" onclick="addItem()" style="width:100%">+ הוסף פריט</button>
-
       <div class="sep"></div>
-
-      <!-- כל הפריטים -->
       <button class="btn" onclick="toggleItemsList()" id="items-toggle-btn" style="width:100%;margin-bottom:8px">&#x25BC; כל הפריטים</button>
       <div id="items-list" style="display:none"></div>
-
-
-      <div class="sep"></div>
-      <div class="sec-title">ניהול גלריה</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">לפאה עם כמה תמונות — השתמש באותו שם בדיוק.</p>
-      <div class="field"><label>שם הפאה</label><input type="text" id="gal-name" placeholder='למשל: פאה בלונד גלי 16"'></div>
-      <div class="g2">
-        <div class="field"><label>סוג פאה</label><select id="gal-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select></div>
-        <div class="field"><label>אורך</label><select id="gal-length"><option value='10"'>10"</option><option value='12"'>12"</option><option value='14"'>14"</option><option value='16"' selected>16"</option><option value='18"'>18"</option><option value='20"'>20"</option><option value='22"'>22"</option><option value='24"'>24"</option><option value='26"'>26"</option><option value='28"'>28"</option><option value='30"'>30"</option></select></div>
-      </div>
-      <div class="g2">
-        <div class="field"><label>מבנה</label><select id="gal-structure"><option value="">בחרי</option><option value="tiny">דירוג קל</option><option value="no layer">ללא דירוג</option></select></div>
-        <div class="field"><label>מידת רשת</label><select id="gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
-      </div>
-      <div class="field"><label>סוג תלתול</label><select id="gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
-      <div class="g2">
-        <div class="field"><label>צבע בסיס</label><select id="gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
-        <div class="field"><label>צבע בסיס צבוע</label><select id="gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
-      </div>
-      <div class="g2">
-        <div class="field"><label>צבע גוונים</label><select id="gal-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
-        <div class="field"><label>סגנון גוונים</label><select id="gal-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
-      </div>
-      <div class="g2">
-        <div class="field"><label>אחוז גוונים</label><select id="gal-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
-        <div class="field"><label>שביל צד</label><select id="gal-part"><option value="">ללא שביל</option><option value="Path to the right, hair to the left">שביל ימין</option><option value="Path to the left, hair to the right">שביל שמאל</option></select></div>
-      </div>
-      <div class="field"><label>בחר תמונה מהטאבלט</label><input type="file" id="gal-file" accept="image/*" multiple style="font-size:14px;padding:8px 0" onchange="showGalPreview(this)"></div>
-      <div id="gal-preview-area" style="display:none;margin-bottom:10px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">תצוגה מקדימה — לחץ על תמונה להגדלה:</div>
-        <div id="gal-preview-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
-      </div>
-      <button class="btn btn-blue" onclick="addGalPhoto()" style="width:100%">+ הוסף תמונה לגלריה</button>
-      <button class="btn" onclick="toggleGalList()" id="gal-list-btn" style="width:100%;margin-top:8px">&#x25BC; \u05e4\u05d0\u05d5\u05ea \u05e9\u05d4\u05d5\u05e1\u05e4\u05ea\u05d9</button>
-      <div id="gal-admin-list" style="display:none;margin-top:6px"></div>
-
-      <div class="sep"></div>
-
-      <!-- סיסמה -->
-      <div class="sec-title">שינוי סיסמה</div>
-      <div class="g2">
-        <div class="field"><label>סיסמה חדשה</label><input type="password" id="new-pin1" maxlength="6" inputmode="numeric"></div>
-        <div class="field"><label>אישור סיסמה</label><input type="password" id="new-pin2" maxlength="6" inputmode="numeric"></div>
-      </div>
-      <button class="btn" onclick="changePin()" style="width:100%">עדכן סיסמה</button>
-
-      <div class="sep"></div>
-      <div class="sep"></div>
-      <div class="sec-title">גיבוי ושחזור נתונים</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">ייצא את כל הנתונים (גלריה, לקוחות, הגדרות) לקובץ — ויבא אותם באתר החדש.</p>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-blue" onclick="exportBackup()" style="flex:1">&#x1F4E4; ייצא גיבוי</button>
-        <button class="btn" onclick="document.getElementById('import-file').click()" style="flex:1">&#x1F4E5; ייבא גיבוי</button>
-      </div>
-      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(this)">
-
       <div class="sep"></div>
       <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
       </div><!-- /admin-pricelist -->
 
+      <!-- ── טאב לקוחות ── -->
       <div id="admin-customers">
         <div class="sec-title">סיכום</div>
         <div class="crm-summary" id="adm-summary"></div>
@@ -780,7 +684,75 @@ button.tab-btn.active{
         <button class="btn" onclick="openReportModal()" style="width:100%;margin-bottom:10px;background:var(--accent);color:#fff;border-color:var(--accent)">&#x1F4CA; הפק דוח לפי תאריכים</button>
         <input class="crm-search" id="adm-search" type="search" placeholder="חיפוש לפי שם / טלפון / פאה..." oninput="renderAdminCustomers()">
         <div id="adm-orders-list"></div>
+        <div class="sep"></div>
+        <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
       </div><!-- /admin-customers -->
+
+      <!-- ── טאב גלריה ── -->
+      <div id="admin-gallery" style="display:none">
+        <div class="sec-title">ניהול גלריה</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">לפאה עם כמה תמונות — השתמש באותו שם בדיוק.</p>
+        <div class="field"><label>שם הפאה</label><input type="text" id="gal-name" placeholder='למשל: פאה בלונד גלי 16"'></div>
+        <div class="g2">
+          <div class="field"><label>סוג פאה</label><select id="gal-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select></div>
+          <div class="field"><label>אורך</label><select id="gal-length"><option value='10"'>10"</option><option value='12"'>12"</option><option value='14"'>14"</option><option value='16"' selected>16"</option><option value='18"'>18"</option><option value='20"'>20"</option><option value='22"'>22"</option><option value='24"'>24"</option><option value='26"'>26"</option><option value='28"'>28"</option><option value='30"'>30"</option></select></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>מבנה</label><select id="gal-structure"><option value="">בחרי</option><option value="tiny">דירוג קל</option><option value="no layer">ללא דירוג</option></select></div>
+          <div class="field"><label>מידת רשת</label><select id="gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
+        </div>
+        <div class="field"><label>סוג תלתול</label><select id="gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+        <div class="g2">
+          <div class="field"><label>צבע בסיס</label><select id="gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
+          <div class="field"><label>צבע בסיס צבוע</label><select id="gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>צבע גוונים</label><select id="gal-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+          <div class="field"><label>סגנון גוונים</label><select id="gal-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>אחוז גוונים</label><select id="gal-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
+          <div class="field"><label>שביל צד</label><select id="gal-part"><option value="">ללא שביל</option><option value="Path to the right, hair to the left">שביל ימין</option><option value="Path to the left, hair to the right">שביל שמאל</option></select></div>
+        </div>
+        <div class="field"><label>בחר תמונה מהטאבלט</label><input type="file" id="gal-file" accept="image/*" multiple style="font-size:14px;padding:8px 0" onchange="showGalPreview(this)"></div>
+        <div id="gal-preview-area" style="display:none;margin-bottom:10px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">תצוגה מקדימה — לחץ על תמונה להגדלה:</div>
+          <div id="gal-preview-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+        </div>
+        <button class="btn btn-blue" onclick="addGalPhoto()" style="width:100%">+ הוסף תמונה לגלריה</button>
+        <button class="btn" onclick="toggleGalList()" id="gal-list-btn" style="width:100%;margin-top:8px">&#x25BC; פאות שהוספתי</button>
+        <div id="gal-admin-list" style="display:none;margin-top:6px"></div>
+        <div class="sep"></div>
+        <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
+      </div><!-- /admin-gallery -->
+
+      <!-- ── טאב הגדרות ── -->
+      <div id="admin-settings" style="display:none">
+        <div class="sec-title">🔒 שינוי סיסמה</div>
+        <div class="g2">
+          <div class="field"><label>סיסמה חדשה</label><input type="password" id="new-pin1" maxlength="6" inputmode="numeric"></div>
+          <div class="field"><label>אישור סיסמה</label><input type="password" id="new-pin2" maxlength="6" inputmode="numeric"></div>
+        </div>
+        <button class="btn" onclick="changePin()" style="width:100%">עדכן סיסמה</button>
+        <div class="sep"></div>
+        <div class="sec-title">🔤 גודל פונט</div>
+        <div class="slider-row" style="margin:8px 0 16px">
+          <label>גודל</label>
+          <input type="range" id="font-size-slider" min="12" max="22" value="16" step="1" oninput="applyFontSize(this.value)">
+          <input type="number" id="font-size-num" min="12" max="22" value="16" step="1" style="width:54px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:12px;text-align:center;background:var(--card);color:var(--text)" oninput="applyFontSize(this.value,true)">
+        </div>
+        <div class="sep"></div>
+        <div class="sec-title">💾 גיבוי ושחזור</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px">ייצא את כל הנתונים (גלריה, לקוחות, הגדרות) לקובץ — ויבא אותם באתר החדש.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-blue" onclick="exportBackup()" style="flex:1">📤 ייצא גיבוי</button>
+          <button class="btn" onclick="document.getElementById('import-file').click()" style="flex:1">📥 ייבא גיבוי</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(this)">
+        <div class="sep"></div>
+        <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
+      </div><!-- /admin-settings -->
+
     </div>
   </div>
 </div>
@@ -1272,6 +1244,13 @@ function checkPin() {
   if (val === pin) {
     document.getElementById('pin-wrap').style.display = 'none';
     document.getElementById('content-wrap').style.display = 'block';
+    switchAdminTab('price');
+    // sync font slider to current value
+    var saved = parseInt(localStorage.getItem('mirchoron_font_size')||'16');
+    var sl = document.getElementById('font-size-slider');
+    var nm = document.getElementById('font-size-num');
+    if(sl) sl.value = saved;
+    if(nm) nm.value = saved;
     loadAdminFields();
   } else {
     document.getElementById('pin-err').textContent = '\u05e1\u05d9\u05e1\u05de\u05d0 \u05e9\u05d2\u05d5\u05d9\u05d0';
@@ -2810,12 +2789,36 @@ function switchPage(page) {
 }
 
 function switchAdminTab(tab) {
-  document.getElementById('admin-pricelist').style.display = tab==='price' ? 'block' : 'none';
-  document.getElementById('admin-customers').style.display = tab==='customers' ? 'block' : 'none';
-  document.getElementById('atab-price').className = 'admin-tab' + (tab==='price' ? ' active' : '');
-  document.getElementById('atab-customers').className = 'admin-tab' + (tab==='customers' ? ' active' : '');
+  document.getElementById('admin-pricelist').style.display  = tab==='price'     ? 'block' : 'none';
+  document.getElementById('admin-customers').style.display  = tab==='customers' ? 'block' : 'none';
+  document.getElementById('admin-gallery').style.display    = tab==='gallery'   ? 'block' : 'none';
+  document.getElementById('admin-settings').style.display   = tab==='settings'  ? 'block' : 'none';
+  ['price','customers','gallery','settings'].forEach(function(t){
+    var el = document.getElementById('atab-'+t);
+    if (el) el.className = 'admin-tab' + (tab===t ? ' active' : '');
+  });
   if (tab==='customers') renderAdminCustomers();
 }
+
+function applyFontSize(val, fromNum) {
+  val = Math.min(22, Math.max(12, parseInt(val)||16));
+  document.getElementById('font-size-slider').value = val;
+  document.getElementById('font-size-num').value = val;
+  document.body.style.fontSize = val + 'px';
+  // עדכן CSS variable שאפשר להשתמש בו בכל המערכת
+  document.documentElement.style.setProperty('--base-font', val + 'px');
+  localStorage.setItem('mirchoron_font_size', val);
+}
+
+// טעינת גודל פונט שמור
+(function(){
+  var saved = localStorage.getItem('mirchoron_font_size');
+  if (saved) {
+    document.body.style.fontSize = parseInt(saved) + 'px';
+    document.documentElement.style.setProperty('--base-font', parseInt(saved) + 'px');
+  }
+})();
+
 
 function renderAdminCustomers() {
   var now = new Date();
@@ -3255,6 +3258,42 @@ var imgEditorIdx = null;
 var imgEditorOrigPixels = null;
 var imgEditorW = 0, imgEditorH = 0;
 
+// ── Pinch-to-zoom על קנבס עורך התמונה ──
+(function(){
+  var scale = 1, lastDist = 0, originX = 0, originY = 0;
+  function dist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+  document.addEventListener('DOMContentLoaded', function(){
+    var canvas = document.getElementById('img-editor-canvas');
+    if (!canvas) return;
+    canvas.addEventListener('touchstart', function(e){
+      if (e.touches.length === 2) { lastDist = dist(e.touches); e.preventDefault(); }
+    }, {passive:false});
+    canvas.addEventListener('touchmove', function(e){
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        var d = dist(e.touches);
+        if (lastDist > 0) {
+          scale *= d / lastDist;
+          scale = Math.min(Math.max(scale, 1), 5);
+          canvas.style.transform = 'scale('+scale+')';
+          canvas.style.transformOrigin = 'top center';
+        }
+        lastDist = d;
+      }
+    }, {passive:false});
+    canvas.addEventListener('touchend', function(e){
+      if (e.touches.length < 2) lastDist = 0;
+    });
+    // double-tap לאיפוס zoom
+    var lastTap = 0;
+    canvas.addEventListener('touchend', function(){
+      var now = Date.now();
+      if (now - lastTap < 300) { scale = 1; canvas.style.transform = ''; }
+      lastTap = now;
+    });
+  });
+})();
+
 function openImgEditor(idx) {
   imgEditorIdx = idx;
   var photo = galPhotos[idx];
@@ -3281,7 +3320,10 @@ function openImgEditor(idx) {
 
 function closeImgEditor() {
   document.getElementById('img-editor-modal').classList.remove('open');
+  var canvas = document.getElementById('img-editor-canvas');
+  if (canvas) { canvas.style.transform = ''; }
   imgEditorIdx = null; imgEditorOrigPixels = null;
+  window._editingPreviewIdx = null;
 }
 
 function syncNum(sliderId, numId) {
