@@ -467,8 +467,43 @@ button.tab-btn.active{
   <div id="admin-lb-box">
     <button type="button" class="modal-close-x" onclick="document.getElementById('admin-lb').classList.remove('open')" aria-label="סגור">×</button>
     <h3 id="admin-lb-title"></h3>
+    <button class="btn" onclick="openGalEditDetails(currentAdminLbGroup)" style="width:100%;margin-bottom:10px;font-size:13px">✏️ ערוך פרטי פאה</button>
     <div class="admin-lb-grid" id="admin-lb-grid"></div>
     <button class="btn" onclick="document.getElementById('admin-lb').classList.remove('open')" style="width:100%">סגור</button>
+  </div>
+</div>
+
+<!-- מודל עריכת פרטי פאה בגלריה -->
+<div id="gal-edit-modal" style="display:none;position:fixed;inset:0;z-index:750;background:rgba(0,0,0,0.88);overflow-y:auto">
+  <div style="background:var(--card);min-height:100vh;padding:18px;position:relative">
+    <button type="button" class="modal-close-x" onclick="closeGalEditDetails()">×</button>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">✏️ עריכת פרטי פאה</h3>
+    <div class="field"><label>שם הפאה</label><input type="text" id="edit-gal-name"></div>
+    <div class="g2">
+      <div class="field"><label>סוג פאה</label><select id="edit-gal-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select></div>
+      <div class="field"><label>אורך</label><select id="edit-gal-length"><option value='10"'>10"</option><option value='12"'>12"</option><option value='14"'>14"</option><option value='16"'>16"</option><option value='18"'>18"</option><option value='20"'>20"</option><option value='22"'>22"</option><option value='24"'>24"</option><option value='26"'>26"</option><option value='28"'>28"</option><option value='30"'>30"</option></select></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>מבנה</label><select id="edit-gal-structure"><option value="">בחרי</option><option value="tiny">דירוג קל</option><option value="no layer">ללא דירוג</option></select></div>
+      <div class="field"><label>מידת רשת</label><select id="edit-gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
+    </div>
+    <div class="field"><label>סוג תלתול</label><select id="edit-gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+    <div class="g2">
+      <div class="field"><label>צבע בסיס</label><select id="edit-gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
+      <div class="field"><label>צבע בסיס צבוע</label><select id="edit-gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>צבע גוונים</label><select id="edit-gal-highlight-color"><option value="">בחרי/השאירי פתוח</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+      <div class="field"><label>סגנון גוונים</label><select id="edit-gal-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>אחוז גוונים</label><select id="edit-gal-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
+      <div class="field"><label>שביל צד</label><select id="edit-gal-part"><option value="">ללא שביל</option><option value="Path to the right, hair to the left">שביל ימין</option><option value="Path to the left, hair to the right">שביל שמאל</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-blue" onclick="saveGalEditDetails()" style="flex:1">✓ שמור שינויים</button>
+      <button class="btn" onclick="closeGalEditDetails()" style="flex:1">ביטול</button>
+    </div>
   </div>
 </div>
 
@@ -1831,7 +1866,10 @@ function renderGalAdminList() {
   });
 }
 
+var currentAdminLbGroup = null;
+
 function openAdminLb(encodedName) {
+  currentAdminLbGroup = encodedName;
   var name = decodeURIComponent(encodedName);
   var items = [];
   galPhotos.forEach(function(p,i){
@@ -3607,6 +3645,72 @@ function openPreviewEditor(idx) {
     document.getElementById('img-editor-modal').classList.add('open');
   };
   img.src = url;
+}
+
+function openGalEditDetails(encodedGroup) {
+  if (!encodedGroup) return;
+  var group = decodeURIComponent(encodedGroup);
+  // מצא את הפאה הראשונה בקבוצה לטעינת הפרטים
+  var p = null;
+  galPhotos.forEach(function(ph, i){
+    var key = ph.groupId || ('solo_'+i);
+    if (key === group && !p) p = ph;
+  });
+  if (!p) return;
+  // מלא שדות
+  var setV = function(id, v){ var el=document.getElementById(id); if(el) el.value = v||''; };
+  setV('edit-gal-name',             p.name);
+  setV('edit-gal-type',             p.type);
+  setV('edit-gal-length',           p.length);
+  setV('edit-gal-structure',        p.structure);
+  setV('edit-gal-cap',              p.cap);
+  setV('edit-gal-hair',             p.hair);
+  setV('edit-gal-base-color',       p.baseColor);
+  setV('edit-gal-painted-base-color', p.paintedBaseColor);
+  setV('edit-gal-highlight-color',  p.highlightColor);
+  setV('edit-gal-highlight-style',  p.highlightStyle);
+  setV('edit-gal-highlight-pct',    p.highlightPct);
+  setV('edit-gal-part',             p.part);
+  document.getElementById('gal-edit-modal').style.display = 'block';
+}
+
+function closeGalEditDetails() {
+  document.getElementById('gal-edit-modal').style.display = 'none';
+}
+
+function saveGalEditDetails() {
+  if (!currentAdminLbGroup) return;
+  var group = decodeURIComponent(currentAdminLbGroup);
+  var gV = function(id){ var el=document.getElementById(id); return el ? el.value : ''; };
+  var newName = gV('edit-gal-name').trim() || group;
+  var updates = {
+    name: newName,
+    type: gV('edit-gal-type'),
+    length: gV('edit-gal-length'),
+    structure: gV('edit-gal-structure'),
+    cap: gV('edit-gal-cap'),
+    hair: gV('edit-gal-hair'),
+    baseColor: gV('edit-gal-base-color'),
+    paintedBaseColor: gV('edit-gal-painted-base-color'),
+    highlightColor: gV('edit-gal-highlight-color'),
+    highlightStyle: gV('edit-gal-highlight-style'),
+    highlightPct: gV('edit-gal-highlight-pct'),
+    part: gV('edit-gal-part')
+  };
+  // עדכן את כל התמונות בקבוצה
+  galPhotos.forEach(function(ph, i){
+    var key = ph.groupId || ('solo_'+i);
+    if (key === group) Object.assign(ph, updates);
+  });
+  saveGal();
+  renderGallery();
+  renderGalAdminList();
+  closeGalEditDetails();
+  // עדכן כותרת
+  var enc = encodeURIComponent(group);
+  currentAdminLbGroup = enc;
+  openAdminLb(enc);
+  toast('פרטי הפאה עודכנו');
 }
 
 function applyDensityDiscount() {
