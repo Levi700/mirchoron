@@ -1847,7 +1847,9 @@ function renderGalAdminList() {
   el.innerHTML = '';
   groupOrder.forEach(function(gid){
     var items = groups[gid];
-    var p0 = items[0].p;
+    // תמונה ראשית ראשונה
+    var primaryItem = items.find(function(obj){ return obj.p.isPrimary; }) || items[0];
+    var p0 = primaryItem.p;
     var parts = [p0.type,p0.color,p0.style,p0.length].filter(function(x){return x&&x!=='undefined';});
     var info = parts.join(' · ') || 'ללא קטגוריה';
     var row = document.createElement('div');
