@@ -1535,6 +1535,10 @@ function renderGallery() {
     if (!groups[p.name]) groups[p.name] = [];
     groups[p.name].push(p);
   });
+  // סדר כל קבוצה — ראשית ראשונה
+  Object.keys(groups).forEach(function(n){
+    groups[n].sort(function(a,b){ return (b.isPrimary?1:0)-(a.isPrimary?1:0); });
+  });
 
   var grid  = document.getElementById('gallery-grid');
   var empty = document.getElementById('gallery-empty');
@@ -1547,8 +1551,7 @@ function renderGallery() {
     div.className = 'gal-item';
     div.onclick = (function(n){ return function(){ openLb(n); }; })(name);
     var img = document.createElement('img');
-    var primaryPhoto = groups[name].find(function(p){ return p.isPrimary; }) || groups[name][0];
-    img.src = primaryPhoto.url;
+    img.src = groups[name][0].url;
     img.loading = 'lazy';
     img.alt = name;
     div.appendChild(img);
@@ -1706,10 +1709,11 @@ function openOrderFromGallery(){
 
 function openLb(encodedName) {
   const name = decodeURIComponent(encodedName);
-  const groups = {};
-  galPhotos.forEach(p => { if(!groups[p.name]) groups[p.name]=[]; groups[p.name].push(p); });
-  var items = groups[name]||[];
-  lbPhotos = items.map(p=>p.url);
+  var items = [];
+  galPhotos.forEach(function(p){ if(p.name===name) items.push(p); });
+  // תמונה ראשית ראשונה
+  items.sort(function(a,b){ return (b.isPrimary?1:0)-(a.isPrimary?1:0); });
+  lbPhotos = items.map(function(p){ return p.url; });
   lbWigInfo = items.length > 0 ? items[0] : null;
   if (lbWigInfo) lbWigInfo.name = name;
   lbIdx = 0;
