@@ -1442,6 +1442,14 @@ function loadGal() {
 var GAL_CHUNK = 10;
 function saveGal() {
   try {
+    // הגנה: אל תשמור ריק אם יש נתונים קיימים בStorage
+    if (galPhotos.length === 0) {
+      var existing = localStorage.getItem(STORE_KEY+"_gal_0") || localStorage.getItem(STORE_KEY+"_gal");
+      if (existing) {
+        console.warn('saveGal: blocked saving empty galPhotos over existing data');
+        return;
+      }
+    }
     var i = 0;
     while (localStorage.getItem(STORE_KEY+"_gal_"+i) !== null) {
       localStorage.removeItem(STORE_KEY+"_gal_"+i); i++;
