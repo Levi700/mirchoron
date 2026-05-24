@@ -2131,8 +2131,8 @@ function buildOrderText(o){
     line('Highlights percentage', d.highlightPct||'') +
     line('Part side', d.part||'') +
     line('Production notes', d.notes||'') +
-    (o.inspoNote ? ('Inspiration note: ' + o.inspoNote + '\n') : '') +
-    (o.inspoImage ? '[Inspiration image attached]\n' : '');
+    (o.inspoNote ? ('Inspiration note (what to take from the image): ' + o.inspoNote + '\n') : '') +
+    (o.inspoIdx != null ? '[Inspiration image attached — for reference only, not the final wig]\n' : '');
 }
 
 function buildFullCustomerOrderText(o){
@@ -2337,8 +2337,8 @@ function buildManufacturerImageForOrderAsync(o){
       var imagesToDraw = [];
       var galUrl   = (o.galleryIdx != null && galPhotos[o.galleryIdx]) ? galPhotos[o.galleryIdx].url : (o.galleryImage||'');
       var inspoUrl = (o.inspoIdx   != null && galPhotos[o.inspoIdx])   ? galPhotos[o.inspoIdx].url   : (o.inspoImage||'');
-      if(galUrl)   imagesToDraw.push({ src: galUrl,   label: 'תמונת ייחוס:' });
-      if(inspoUrl) imagesToDraw.push({ src: inspoUrl, label: 'השראה:' });
+      if(galUrl)   imagesToDraw.push({ src: galUrl,   label: 'Reference wig image:' });
+      if(inspoUrl) imagesToDraw.push({ src: inspoUrl, label: 'Inspiration image (not the final wig):' });
       if(imagesToDraw.length === 0){ resolve(canvas.toDataURL('image/png')); return; }
       var loaded = 0;
       imagesToDraw.forEach(function(item, idx){
