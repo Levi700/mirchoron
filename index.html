@@ -1680,7 +1680,7 @@ function openOrderFromGallery(){
   setSelectIfOption('wig-hair', p.style);
   setSelectIfOption('wig-base-color', p.color);
   setSelectIfOption('wig-highlight-style', p.style);
-  document.getElementById('wig-notes').value = 'נבחר מהגלריה: '+[p.name,p.type,p.color,p.style,p.length].filter(Boolean).join(' | ');
+  // לא ממלאים הערות אוטומטית מהגלריה
   document.getElementById('ord-price').value = priceInfo.price || '';
   document.getElementById('ord-orig-price').textContent = priceInfo.price ? 'מחיר לפי מחירון: ₪' + priceInfo.price.toLocaleString('he-IL') : 'לא נמצא מחיר אוטומטי — להזין ידנית';
   document.getElementById('ord-pay').value = 'מזומן';
@@ -1980,9 +1980,17 @@ function val(id){ var el=document.getElementById(id); return el ? el.value.trim(
 function stripOrderImages(arr) {
   return arr.map(function(o) {
     var c = Object.assign({}, o);
+    // מחק כל שדה שעלול להכיל base64
     delete c.manufacturerImage;
     delete c.signatureImage;
     delete c.termsImage;
+    delete c.galleryImage;  // ישן — מוחלף ע"י galleryIdx
+    delete c.inspoImage;    // ישן — מוחלף ע"י inspoIdx
+    // נקה גם מתוך wigDetails אם יש url
+    if (c.wigDetails) {
+      c.wigDetails = Object.assign({}, c.wigDetails);
+      delete c.wigDetails.url;
+    }
     return c;
   });
 }
@@ -2014,19 +2022,19 @@ function saveOrders() {
 
 function loadOrders() {
   try {
-    // נסה פורמט chunks חדש
     var n = parseInt(localStorage.getItem(STORE_KEY+"_orders_chunks") || "0");
+    var all = [];
     if (n > 0) {
-      var all = [];
       for (var i = 0; i < n; i++) {
         var s = localStorage.getItem(STORE_KEY+"_orders_"+i);
         if (s) all = all.concat(JSON.parse(s));
       }
-      return all;
+    } else {
+      var old = localStorage.getItem(STORE_KEY+"_orders");
+      all = old ? JSON.parse(old) : [];
     }
-    // פולבק לפורמט ישן
-    var old = localStorage.getItem(STORE_KEY+"_orders");
-    return old ? JSON.parse(old) : [];
+    // נקה שדות base64 ישנים מהזמנות שנטענו
+    return stripOrderImages(all);
   } catch(e) { return []; }
 }
 
@@ -2183,19 +2191,13 @@ function collectOrderData(){
 }
 
 function buildOrderText(o){
-  // Manufacturer message only — all field names and wig details in English.
   var d=o.wigDetails||{}, gd=o.galleryDetails||{};
-  var galleryLine = o.galleryOrder ? ('Source: selected from gallery\n' +
-    'Gallery details: ' + manufacturerGalleryDetails(gd) + '\n') : '';
   function line(label, val){ return val ? (label + ': ' + val + '\n') : ''; }
   return 'Wig production order - Racheli Kashi\n' +
     '-------------------------\n' +
     'Customer name: ' + (o.name||'') + '\n' +
-    line('Wig model', manufacturerWigName(o)) +
     line('Wig type', translateManufacturerValue(d.wigType||'')) +
     line('Length', inchesToEnglish(d.length||'')) +
-    line('Structure / category', manufacturerCategory(o)) +
-    galleryLine +
     '\nProduction details:\n' +
     line('Cap size', d.cap||'') +
     line('Structure / layers', d.structure ? translateManufacturerValue(d.structure) : '') +
@@ -2207,7 +2209,7 @@ function buildOrderText(o){
     line('Highlights percentage', d.highlightPct||'') +
     line('Part side', d.part||'') +
     line('Production notes', d.notes||'') +
-    (o.inspoNote ? ('Inspiration note (what to take from the image): ' + o.inspoNote + '\n') : '') +
+    (o.inspoNote ? ('Inspiration note: ' + o.inspoNote + '\n') : '') +
     (o.inspoIdx != null ? '[Inspiration image attached — for reference only, not the final wig]\n' : '');
 }
 
