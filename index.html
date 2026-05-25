@@ -518,7 +518,8 @@ button.tab-btn.active{
     <div class="order-steps">
       <div class="order-step active" id="step-ind-1">1. פרטי פאה</div>
       <div class="order-step" id="step-ind-2">2. לקוחה</div>
-      <div class="order-step" id="step-ind-3">3. תקנון ושליחה</div>
+      <div class="order-step" id="step-ind-3">3. תקנון</div>
+      <div class="order-step" id="step-ind-4">4. אישור</div>
     </div>
 
     <div class="order-screen active" id="order-step-1">
@@ -589,7 +590,21 @@ button.tab-btn.active{
       <div class="terms-box" id="terms-box"></div>
       <label class="check-row"><input type="checkbox" id="ord-terms-ok"> <span>הלקוחה מאשרת שקראה והבינה את התקנון והצהרת האחריות.</span></label>
       <div class="field"><label>חתימת לקוחה עם האצבע</label><div class="sig-wrap"><canvas id="sig-canvas" width="600" height="220"></canvas></div></div>
-      <div style="display:flex;gap:8px"><button class="btn" onclick="clearSignature()" style="flex:1">נקה חתימה</button><button class="btn" onclick="sendTermsToCustomer()" style="flex:1">שליחת תקנון ללקוחה</button><button class="btn" onclick="skipTermsSend()" style="flex:1">דלג</button></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="clearSignature()" style="flex:1">נקה חתימה</button>
+        <button class="btn" onclick="sendTermsToCustomer()" style="flex:1">שליחת תקנון ללקוחה</button>
+      </div>
+      <div class="order-actions">
+        <button class="btn" onclick="goOrderStep(2)">חזרה</button>
+        <button class="btn" onclick="goOrderStep(4)" style="flex:1">דלג על תקנון</button>
+        <button class="btn btn-blue" onclick="goOrderStep(4)" style="flex:1">המשך לסיכום ←</button>
+      </div>
+    </div>
+
+    <!-- שלב 4 — סיכום לפני שליחה ליצרן -->
+    <div class="order-screen" id="order-step-4">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">✅ סיכום הזמנה — אשר לפני שליחה</h3>
+      <div id="order-review-content" style="font-size:13px;line-height:1.8;background:var(--bg);border-radius:10px;padding:14px;white-space:pre-wrap;border:1px solid var(--border)"></div>
       <div class="copy-box" id="order-copy-preview" style="display:none"></div>
       <div id="order-send-actions" style="display:none;gap:8px;margin-top:8px;flex-wrap:wrap">
         <button class="btn btn-blue" onclick="shareCurrentOrderText()" style="flex:1">שתף לוואטסאפ עם תוכן</button>
@@ -599,7 +614,10 @@ button.tab-btn.active{
         <button class="btn" onclick="downloadManufacturerImageCurrent()" style="flex:1">תמונת הזמנה</button>
         <button class="btn btn-blue" onclick="shareManufacturerFileCurrent()" style="flex:1">שתף קובץ יצרן</button>
       </div>
-      <div class="order-actions"><button class="btn" onclick="goOrderStep(2)">חזרה</button><button class="btn btn-blue" onclick="saveOrder()">שליחה ליצרן וסיום הזמנה</button></div>
+      <div class="order-actions">
+        <button class="btn" onclick="goOrderStep(3)">חזרה לתקנון</button>
+        <button class="btn btn-blue" onclick="saveOrder()">✅ אשר ושלח ליצרן</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2089,10 +2107,18 @@ function goOrderStep(step) {
   if (step === 2 && !validateWigStep()) return;
   if (step === 3 && !validateCustomerStep()) return;
   currentOrderStep = step;
-  [1,2,3].forEach(function(n){
-    document.getElementById('order-step-'+n).className = 'order-screen' + (n===step?' active':'');
-    document.getElementById('step-ind-'+n).className = 'order-step' + (n===step?' active':'');
+  [1,2,3,4].forEach(function(n){
+    document.getElementById('order-screen-'+n) && (document.getElementById('order-screen-'+n).className = 'order-screen' + (n===step?' active':''));
+    document.getElementById('order-step-'+n) && (document.getElementById('order-step-'+n).className = 'order-screen' + (n===step?' active':''));
+    document.getElementById('step-ind-'+n) && (document.getElementById('step-ind-'+n).className = 'order-step' + (n===step?' active':''));
   });
+  if (step === 4) {
+    // מלא מסך סיכום
+    var o = collectOrderData();
+    var txt = buildOrderText(o);
+    var reviewEl = document.getElementById('order-review-content');
+    if (reviewEl) reviewEl.textContent = txt;
+  }
   updateTermsText();
   if (step === 3) setTimeout(initSignaturePad, 100);
 }
