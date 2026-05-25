@@ -616,6 +616,7 @@ button.tab-btn.active{
       </div>
       <div class="order-actions">
         <button class="btn" onclick="goOrderStep(3)">חזרה לתקנון</button>
+        <button class="btn" onclick="saveDraftOrder()" style="background:var(--muted-bg,#f3f4f6);color:var(--text)">💾 שמור טיוטה</button>
         <button class="btn btn-blue" onclick="saveOrder()">✅ אשר ושלח ליצרן</button>
       </div>
     </div>
@@ -785,7 +786,19 @@ button.tab-btn.active{
 
       <!-- ── טאב הגדרות ── -->
       <div id="admin-settings" style="display:none">
-        <div class="sec-title">🔒 שינוי סיסמה</div>
+        <div class="sec-title">🏦 פרטי חשבון בנק לקבלת תשלומים</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px">הזיני פעם אחת — יופיע אוטומטית בהנחיות הלקוחה</p>
+        <div class="g2">
+          <div class="field"><label>שם בנק</label><input type="text" id="acct-bank" placeholder="לדוגמה: פפר / לאומי"></div>
+          <div class="field"><label>מספר בנק</label><input type="text" id="acct-bank-num" placeholder="לדוגמה: 10"></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>מספר סניף</label><input type="text" id="acct-branch" placeholder="לדוגמה: 600"></div>
+          <div class="field"><label>מספר חשבון</label><input type="text" id="acct-number" placeholder="לדוגמה: 123456"></div>
+        </div>
+        <div class="field"><label>שם בעל החשבון</label><input type="text" id="acct-name" placeholder="השם המלא כפי שמופיע בחשבון"></div>
+        <button class="btn btn-blue" onclick="saveBankAccount()" style="width:100%">💾 שמור פרטי חשבון</button>
+        <div class="sep"></div>
         <div class="g2">
           <div class="field"><label>סיסמה חדשה</label><input type="password" id="new-pin1" maxlength="6" inputmode="numeric"></div>
           <div class="field"><label>אישור סיסמה</label><input type="password" id="new-pin2" maxlength="6" inputmode="numeric"></div>
@@ -852,19 +865,105 @@ button.tab-btn.active{
     </div>
 
     <div class="success-pay-band">
-      <div class="success-pay-title" id="success-pay-title">נשאר רק לסיים את התשלום 👇</div>
-      <div class="success-pay-rows">
-        <div class="success-pay-row">
-          <span class="row-icon">💰</span>
-          <span>ניתן לשלם במזומן, כרטיס אשראי, ביט או העברה בנקאית</span>
+      <div class="success-pay-title" id="success-pay-title">✨ נשאר רק לשלם</div>
+      <!-- כפתורי בחירת אמצעי תשלום -->
+      <div id="pay-methods-screen">
+        <div style="display:grid;gap:10px;margin-top:12px">
+          <button class="btn btn-blue" onclick="openPayScreen('custom')" style="width:100%;text-align:right;padding:14px">💰 תשלום מותאם אישית <span style="font-size:11px;opacity:0.8;display:block">שילוב כמה אמצעים / פריסה</span></button>
+          <button class="btn" onclick="openPayScreen('bit')" style="width:100%;text-align:right;padding:14px">📱 ביט / פייבוקס <span style="font-size:11px;color:var(--muted);display:block">לאחר התשלום יש לשלוח אישור</span></button>
+          <button class="btn" onclick="openPayScreen('standing')" style="width:100%;text-align:right;padding:14px">🏦 הוראת קבע / העברה בנקאית <span style="font-size:11px;color:var(--muted);display:block">פריסה נוחה דרך הבנק</span></button>
+          <button class="btn" onclick="openPayScreen('credit')" style="width:100%;text-align:right;padding:14px">💳 תשלום באשראי <span style="font-size:11px;color:var(--muted);display:block">יחובר לעמוד סליקה בקרוב</span></button>
+          <button class="btn" onclick="openPayWhatsapp()" style="width:100%;background:#25D366;color:#fff;border-color:#25D366;text-align:right;padding:12px">💬 צריכה עזרה? וואטסאפ</button>
         </div>
-        <div class="success-pay-row">
-          <span class="row-icon">🌸</span>
-          <span>ניתן לבקש חלוקה נוחה לתשלומים</span>
+      </div>
+
+      <!-- מסך ביט/פייבוקס -->
+      <div id="pay-bit-screen" style="display:none">
+        <h4 style="margin:12px 0 8px;font-size:14px">📱 אישור תשלום ביט / פייבוקס</h4>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">לאחר שהלקוחה שילמה — סמני את אמצעי התשלום:</p>
+        <div style="display:grid;gap:10px">
+          <button class="btn" onclick="markPaymentDone('ביט')" style="width:100%;padding:14px;font-size:15px;background:#2563eb;color:#fff;border-color:#2563eb">💙 אישור תשלום בביט</button>
+          <button class="btn" onclick="markPaymentDone('פייבוקס')" style="width:100%;padding:14px;font-size:15px;background:#7c3aed;color:#fff;border-color:#7c3aed">🟣 אישור תשלום בפייבוקס</button>
         </div>
-        <div class="success-pay-row">
-          <span class="row-icon">⚡</span>
-          <span>לאחר הסדרת התשלום — ההזמנה עוברת לטיפול מלא</span>
+        <button class="btn" onclick="backToPayMethods()" style="width:100%;margin-top:12px">← חזרה</button>
+      </div>
+
+      <!-- מסך אשראי -->
+      <div id="pay-credit-screen" style="display:none">
+        <h4 style="margin:12px 0 8px;font-size:14px">💳 תשלום באשראי</h4>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">בהמשך יחובר לעמוד סליקה. כרגע ניתן לסמן ידנית.</p>
+        <button class="btn btn-blue" onclick="markPaymentDone('אשראי')" style="width:100%">✅ סימון כשולם באשראי</button>
+        <button class="btn" onclick="backToPayMethods()" style="width:100%;margin-top:10px">← חזרה</button>
+      </div>
+
+      <!-- מסך הוראת קבע -->
+      <div id="pay-standing-screen" style="display:none">
+        <h4 style="margin:12px 0 8px;font-size:14px">🏦 הוראת קבע / העברה בנקאית</h4>
+
+        <!-- חישוב תשלומים -->
+        <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">הגדרת פריסת תשלומים</div>
+          <div class="g2">
+            <div class="field"><label>מספר תשלומים</label><input type="number" id="standing-count" min="1" max="60" value="3" oninput="calcStanding()"></div>
+            <div class="field"><label>יום בחודש</label><input type="number" id="standing-day" min="1" max="28" value="1" placeholder="1-28" oninput="calcStanding()"></div>
+          </div>
+          <div id="standing-calc" style="font-size:13px;background:var(--card);border-radius:8px;padding:10px;margin-top:6px;border:1px solid var(--border)">
+            <span style="color:var(--muted)">הזיני מספר תשלומים ויום חיוב</span>
+          </div>
+          <button class="btn btn-blue" onclick="confirmStandingOrder()" style="width:100%;margin-top:10px">✅ אשר פריסה זו</button>
+        </div>
+
+        <!-- מדריך בנקים -->
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px">בחרי בנק לקבלת הוראות:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="bank-buttons"></div>
+        <div id="bank-guide" style="display:none;margin-top:12px;font-size:13px;line-height:1.8;background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);white-space:pre-line"></div>
+        <div id="bank-guide-actions" style="display:none;margin-top:10px;gap:8px">
+          <button class="btn btn-blue" onclick="sendStandingOrderConfirm()" style="width:100%">📤 שליחת אישור לווטסאפ</button>
+          <button class="btn" onclick="markStandingDone()" style="width:100%;background:#22c55e;color:#fff;border-color:#22c55e">✅ סיימתי להקים הוראת קבע</button>
+        </div>
+        <button class="btn" onclick="backToPayMethods()" style="width:100%;margin-top:10px">← חזרה</button>
+      </div>
+
+      <!-- מסך תשלום מותאם -->
+      <div id="pay-custom-screen" style="display:none">
+        <h4 style="margin:12px 0 4px;font-size:14px">💰 בניית תשלומים</h4>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;background:var(--bg);border-radius:8px;padding:8px">
+          <span>סה"כ: <strong id="custom-total-display">0 ₪</strong></span>
+          <span style="color:#22c55e">שולם: <strong id="custom-paid-display">0 ₪</strong></span>
+          <span style="color:#ef4444">נשאר: <strong id="custom-left-display">0 ₪</strong></span>
+        </div>
+        <!-- טבלת תשלומים -->
+        <div id="custom-payments-list" style="margin-bottom:10px;max-height:220px;overflow-y:auto"></div>
+        <!-- הוספת תשלום -->
+        <div style="background:var(--bg);border-radius:10px;padding:10px;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">הוספת תשלום</div>
+          <div class="g2">
+            <div class="field"><label>סוג תשלום</label>
+              <select id="new-pay-type" onchange="onPayTypeChange()">
+                <option>מזומן</option><option>ביט</option><option>פייבוקס</option>
+                <option>העברה בנקאית</option><option>הוראת קבע</option><option>אשראי</option>
+              </select>
+            </div>
+            <div class="field"><label>סכום ₪</label><input type="number" id="new-pay-amount" min="0" placeholder="0"></div>
+          </div>
+          <div class="field"><label>תאריך תשלום</label>
+            <input type="date" id="new-pay-date" value="">
+          </div>
+          <!-- מחשבון הוראת קבע — מופיע רק כשבוחרים הוראת קבע -->
+          <div id="inline-standing-calc" style="display:none;background:var(--card);border-radius:8px;padding:10px;margin-bottom:8px;border:1px solid var(--accent)">
+            <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--accent)">חישוב הוראת קבע</div>
+            <div class="g2">
+              <div class="field"><label>מספר תשלומים</label><input type="number" id="inline-count" min="1" max="60" value="3" oninput="calcInlineStanding()"></div>
+              <div class="field"><label>יום בחודש</label><input type="number" id="inline-day" min="1" max="28" value="1" oninput="calcInlineStanding()"></div>
+            </div>
+            <div id="inline-calc-result" style="font-size:13px;color:var(--text);margin:6px 0"></div>
+            <button class="btn btn-blue" onclick="applyInlineStanding()" style="width:100%;font-size:13px">➕ הוסף את כל התשלומים</button>
+          </div>
+          <button class="btn btn-blue" onclick="addCustomPayment()" style="width:100%" id="single-pay-btn">➕ הוסף תשלום</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="backToPayMethods()" style="flex:1">← חזרה</button>
+          <button class="btn" onclick="saveCustomPayments()" style="flex:1;background:#22c55e;color:#fff;border-color:#22c55e">💾 שמור תשלומים</button>
         </div>
       </div>
     </div>
@@ -872,6 +971,10 @@ button.tab-btn.active{
     <button class="success-close-btn" onclick="closeOrderSuccess()">סגור</button>
     <button class="success-close-btn" id="finish-client-btn" onclick="finishClientSession()">סיום תהליך וחזרה ללקוחה חדשה</button>
   </div>
+</div>
+
+<div id="reminders-container" style="display:none;position:fixed;bottom:80px;left:0;right:0;padding:10px;z-index:300;pointer-events:none">
+  <div style="pointer-events:all;max-width:480px;margin:0 auto"></div>
 </div>
 
 <div id="saved-toast"></div>
@@ -2012,13 +2115,16 @@ function val(id){ var el=document.getElementById(id); return el ? el.value.trim(
 function stripOrderImages(arr) {
   return arr.map(function(o) {
     var c = Object.assign({}, o);
-    // מחק כל שדה שעלול להכיל base64
+    // מחק כל שדה שעלול להכיל base64 או טקסט כבד
     delete c.manufacturerImage;
     delete c.signatureImage;
     delete c.termsImage;
-    delete c.galleryImage;  // ישן — מוחלף ע"י galleryIdx
-    delete c.inspoImage;    // ישן — מוחלף ע"י inspoIdx
-    // נקה גם מתוך wigDetails אם יש url
+    delete c.signedTermsImage;  // base64 כבד
+    delete c.fullOrderText;     // טקסט ארוך — ניתן לבנות מחדש
+    delete c.manufacturerText;  // טקסט — ניתן לבנות מחדש
+    delete c.galleryImage;
+    delete c.inspoImage;
+    delete c.signature;         // base64 חתימה
     if (c.wigDetails) {
       c.wigDetails = Object.assign({}, c.wigDetails);
       delete c.wigDetails.url;
@@ -2027,8 +2133,8 @@ function stripOrderImages(arr) {
   });
 }
 
-// שמירת הזמנות ב-chunks כדי לא לחרוג ממגבלת localStorage של מפתח בודד
-var ORDERS_CHUNK = 50;
+// שמירת הזמנות ב-chunks
+var ORDERS_CHUNK = 10;
 function saveOrders() {
   try {
     var lean = stripOrderImages(orders);
@@ -2038,17 +2144,23 @@ function saveOrders() {
       localStorage.removeItem(STORE_KEY+"_orders_"+i);
       i++;
     }
-    localStorage.removeItem(STORE_KEY+"_orders"); // מפתח ישן
-    // שמור ב-chunks
+    localStorage.removeItem(STORE_KEY+"_orders");
     var chunks = Math.ceil(lean.length / ORDERS_CHUNK) || 1;
     for (var c = 0; c < chunks; c++) {
       var slice = lean.slice(c * ORDERS_CHUNK, (c+1) * ORDERS_CHUNK);
-      localStorage.setItem(STORE_KEY+"_orders_"+c, JSON.stringify(slice));
+      try {
+        localStorage.setItem(STORE_KEY+"_orders_"+c, JSON.stringify(slice));
+      } catch(chunkErr) {
+        // אם chunk לא נכנס — הצג אזהרה אבל אל תמחק שום דבר
+        toast('⚠️ אין מספיק מקום לשמור — ייצא גיבוי דחוף מההגדרות!');
+        console.warn('saveOrders chunk failed at chunk '+c, chunkErr);
+        break;
+      }
     }
     localStorage.setItem(STORE_KEY+"_orders_chunks", String(chunks));
   } catch(e) {
     console.warn('saveOrders failed:', e);
-    toast("⚠️ שגיאת שמירה — נסה לפנות מקום בדפדפן");
+    toast('⚠️ שגיאת שמירה — ייצא גיבוי דחוף מההגדרות!');
   }
 }
 
@@ -2767,6 +2879,58 @@ function openSignedTermsPdf(){
 }
 function skipTermsSend(){ toast('דילגת על שליחת התקנון ללקוחה'); }
 
+function saveDraftOrder() {
+  if (!pendingOrder) return;
+  var order = collectOrderData();
+  // אם זו עריכת טיוטה קיימת — עדכן אותה
+  if (pendingOrder.draftId) {
+    order.id = pendingOrder.draftId;
+    var idx = orders.findIndex(function(o){ return o.id === pendingOrder.draftId; });
+    if (idx !== -1) orders.splice(idx, 1);
+  } else {
+    order.id = Date.now();
+  }
+  order.createdAt = new Date().toLocaleString('he-IL');
+  order.status = 'טיוטה';
+  order.isDraft = true;
+  order.manufacturerText = buildOrderText(order);
+  orders.unshift(order);
+  saveOrders();
+  renderCRM();
+  toast('💾 הטיוטה נשמרה — ניתן לערוך מניהול לקוחות');
+  closeOrderModal();
+}
+
+function editDraftOrder(id) {
+  var order = orders.find(function(o){ return o.id === id; });
+  if (!order || !order.isDraft) return;
+  // פתח מודל הזמנה עם הנתונים הקיימים
+  pendingOrder = Object.assign({}, order, { draftId: id });
+  document.getElementById('order-modal').classList.add('open');
+  currentOrderStep = 1;
+  goOrderStep(1);
+  // מלא את השדות
+  setTimeout(function(){
+    var d = order.wigDetails || {};
+    var setV = function(id, v){ var el=document.getElementById(id); if(el&&v) el.value=v; };
+    setV('wig-type', d.wigType); setV('wig-length', d.length);
+    setV('wig-cap', d.cap); setV('wig-structure', d.structure);
+    setV('wig-hair', d.hair); setV('wig-base-color', d.baseColor);
+    setV('wig-painted-base-color', d.paintedBaseColor);
+    setV('wig-highlight-color', d.highlightColor);
+    setV('wig-highlight-style', d.highlightStyle);
+    setV('wig-highlight-pct', d.highlightPct);
+    setV('wig-part', d.part);
+    setV('wig-baby-factory', d.babyFactory);
+    setV('wig-baby-local', d.babyLocal);
+    setV('wig-notes', d.notes);
+    setV('ord-name', order.name); setV('ord-phone', order.phone);
+    setV('ord-city', order.city); setV('ord-email', order.email);
+    setV('ord-notes', order.orderNotes);
+    if (order.price) { var pe=document.getElementById('ord-price'); if(pe) pe.value=order.price; }
+  }, 100);
+}
+
 async function saveOrder() {
   if (!pendingOrder) return;
   if (!validateCustomerStep()) return;
@@ -2864,6 +3028,16 @@ function openCustomer(id) {
     (o.phone?'<div>&#x1F4F1; <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a></div>':'')+
     (o.city?'<div>&#x1F4CD; '+esc(o.city)+'</div>':'')+
     '<div>&#x1F4B3; '+esc(o.pay||'')+'</div>'+
+    (o.payments && o.payments.length ? (function(){
+      var paid = o.payments.filter(function(p){ return p.paid; }).reduce(function(s,p){ return s+p.amount; },0);
+      var left = Math.max(0, (o.price||0) - paid);
+      var rows = o.payments.map(function(p){
+        return '<tr style="border-bottom:1px solid var(--border)"><td style="padding:3px 6px">'+esc(p.type)+'</td><td>'+p.amount.toLocaleString('he-IL')+' \u20aa</td><td>'+p.date+'</td><td style="color:'+(p.paid?'#22c55e':'#f59e0b')+'">'+(p.paid?'שולם':'ממתין')+'</td></tr>';
+      }).join('');
+      return '<div style="background:var(--bg);border-radius:10px;padding:10px;margin-top:4px"><b>פרטי תשלומים:</b>' +
+        '<div style="margin-top:6px;font-size:12px;display:flex;gap:12px"><span style="color:#22c55e">שולם: '+paid.toLocaleString('he-IL')+' \u20aa</span><span style="color:#ef4444">נשאר: '+left.toLocaleString('he-IL')+' \u20aa</span></div>' +
+        '<table style="width:100%;font-size:12px;margin-top:6px;border-collapse:collapse"><tr style="color:var(--muted)"><th style="text-align:right;padding:3px 6px">סוג</th><th>סכום</th><th>תאריך</th><th>סטטוס</th></tr>'+rows+'</table></div>';
+    })() : '') +
     (o.rateUsed?'<div>&#x1F4B1; שער דולר: ₪'+o.rateUsed.toFixed(3)+'</div>':'')+
     '<div>&#x1F4C5; '+esc(o.createdAt||o.date||'')+'</div>'+
     '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>פרטי פאה:</b><br>מידת רשת: '+esc(d.cap||'')+(d.structure?'<br>מבנה: '+esc(d.structure):'')+'<br>סוג תלתול: '+esc(d.hair||'')+'<br>צבע בסיס: '+esc(d.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(d.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(d.highlightColor||'')+'<br>סגנון גוונים: '+esc(d.highlightStyle||'')+'<br>אחוז גוונים: '+esc(d.highlightPct||'')+'<br>הערות לפאה: '+esc(d.notes||'')+'</div>'+
@@ -2970,7 +3144,9 @@ function renderAdminCustomers() {
     row.onclick = (function(id){ return function(){ openCustomer(id); }; })(o.id);
     row.onkeydown = (function(id){ return function(e){ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openCustomer(id); } }; })(o.id);
     row.innerHTML =
-      '<div class="crm-row-top"><span class="crm-name">'+esc(o.name||'')+'</span><span class="crm-price">&#x20AA;'+(o.price||0).toLocaleString('he-IL')+'</span></div>' +
+      '<div class="crm-row-top"><span class="crm-name">'+esc(o.name||'')+'</span>' +
+      (o.isDraft ? '<span style="background:#f59e0b;color:#fff;border-radius:6px;font-size:11px;padding:2px 7px;font-weight:700">טיוטה</span>' : '') +
+      '<span class="crm-price">&#x20AA;'+(o.price||0).toLocaleString('he-IL')+'</span></div>' +
       '<div class="crm-wig">'+esc(o.wig||'')+(o.col?' — '+esc(o.col):'')+'</div>' +
       '<div class="crm-details">' +
         (o.phone?'<span>&#x1F4F1; '+esc(o.phone)+'</span>':'')+
@@ -2978,6 +3154,14 @@ function renderAdminCustomers() {
         '<span>&#x1F4B3; '+esc(o.pay||'')+'</span>'+
         '<span>'+esc(o.date||'')+'</span>'+
       '</div>';
+    if (o.isDraft) {
+      var editBtn = document.createElement('button');
+      editBtn.className = 'btn';
+      editBtn.textContent = '✏️ ערוך טיוטה';
+      editBtn.style.cssText = 'margin-top:6px;font-size:12px;width:100%';
+      editBtn.onclick = (function(id){ return function(e){ e.stopPropagation(); editDraftOrder(id); }; })(o.id);
+      row.appendChild(editBtn);
+    }
     var del = document.createElement('button');
     del.className = 'del-btn';
     del.innerHTML = '&times;';
@@ -3223,6 +3407,10 @@ function toggleItemsList() {
 
 render();
 fetchRate();
+// בדיקת תזכורות תשלום בכל פתיחה
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(checkDueReminders, 1500);
+});
 setInterval(fetchRate, 10 * 60 * 1000);
 
 var darkMode = localStorage.getItem('darkMode') === '1';
@@ -3259,6 +3447,12 @@ function showOrderSuccess(){
     if(ts) ts.classList.remove('open');
     var lb=document.getElementById('lightbox');
     if(lb) lb.classList.remove('open');
+
+    // init תשלומים
+    currentSuccessOrder = orders[0] || null;
+    currentPayOrderId = currentSuccessOrder ? currentSuccessOrder.id : null;
+    customPayments = (currentSuccessOrder && currentSuccessOrder.payments) ? currentSuccessOrder.payments : [];
+    backToPayMethods();
 
     // הצג מחיר בחלון הסיום
     var priceEl = document.getElementById('success-price-display');
@@ -3368,7 +3562,36 @@ window.addEventListener('load', function(){
 
 
 
-// ── גיבוי אוטומטי יומי ──
+// בדיקת מקום פנוי ב-localStorage
+function checkStorageSpace() {
+  try {
+    var total = 0;
+    for (var key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += (localStorage[key].length + key.length) * 2;
+      }
+    }
+    var usedMB = (total / 1024 / 1024).toFixed(1);
+    var pct = Math.round(total / (5 * 1024 * 1024) * 100);
+    if (pct >= 80) {
+      var warn = document.getElementById('storage-warning');
+      if (!warn) {
+        warn = document.createElement('div');
+        warn.id = 'storage-warning';
+        warn.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ef4444;color:#fff;text-align:center;padding:10px;font-size:13px;font-weight:700;z-index:9999;cursor:pointer';
+        warn.innerHTML = '⚠️ אחסון מתמלא ('+usedMB+'MB / ~5MB) — ייצא גיבוי עכשיו! לחץ לסגירה';
+        warn.onclick = function(){ this.remove(); };
+        document.body.appendChild(warn);
+      }
+    }
+  } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(checkStorageSpace, 2000);
+});
+
+
 (function(){
   var today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
   var lastBackup = localStorage.getItem('mirchoron_last_auto_backup');
@@ -3838,6 +4061,438 @@ function applyBabyHairCharge() {
   var base = pendingOrder.originalPrice || pendingOrder.price || 0;
   pendingOrder.originalPrice = base;
   priceEl.value = localVal ? base + 500 : base;
+}
+
+// ── מערכת תשלומים ──
+var currentPayOrderId = null;
+var customPayments = [];
+var currentSuccessOrder = null;
+
+var bankGuides = {
+  "דיסקונט": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית דיסקונט
+🏦 שלב 2: לחצי עו-ש ואחר כך העברות ותשלומים
+🔁 שלב 3: בחרי העברה מחזורית
+➕ שלב 4: הוסיפי מוטב עם פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום חודשי ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "לאומי": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית לאומי
+🏦 שלב 2: לחצי העברות ותשלומים
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הוסיפי מוטב עם פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "הפועלים": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית הפועלים
+🏦 שלב 2: לחצי העברת כספים
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הוסיפי מוטב עם פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "מזרחי טפחות": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית מזרחי טפחות
+🏦 שלב 2: לחצי העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "בינלאומי": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית הבינלאומי
+🏦 שלב 2: לחצי העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך | לעזרה: 2407*
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "פפר": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית פפר
+🏦 שלב 2: לחצי פעולות ואחר כך העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "ONE ZERO": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית ONE ZERO
+🏦 שלב 2: לחצי פעולות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "יהב": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית יהב
+🏦 שלב 2: לחצי העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "מרכנתיל": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית מרכנתיל
+🏦 שלב 2: לחצי העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+  "ירושלים": `📋 פרטי חשבון להעברה:
+שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
+
+📱 שלב 1: פתחי אפליקציית בנק ירושלים
+🏦 שלב 2: לחצי העברות
+🔁 שלב 3: בחרי העברה בהוראת קבע
+➕ שלב 4: הזיני פרטי החשבון למעלה
+💰 שלב 5: הזיני סכום ומספר העברות
+📅 שלב 6: קבעי תאריך חיוב קבוע
+✅ שלב 7: אשרי ושלחי צילום מסך
+⚠️ מסכי האפליקציה עשויים להשתנות.`,
+};
+
+function openPayScreen(type) {
+  ['methods','bit','credit','standing','custom'].forEach(function(s){
+    var el = document.getElementById('pay-'+s+'-screen');
+    if(el) el.style.display = 'none';
+  });
+  var target = document.getElementById('pay-'+type+'-screen');
+  if(target) target.style.display = 'block';
+  if(type === 'standing') { renderBankButtons(); calcStandingOnOpen(); }
+  if(type === 'custom') initCustomPayScreen();
+}
+
+function backToPayMethods() { openPayScreen('methods'); }
+
+function renderBankButtons() {
+  var cont = document.getElementById('bank-buttons');
+  if(!cont) return;
+  cont.innerHTML = '';
+  Object.keys(bankGuides).forEach(function(bank){
+    var btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.textContent = bank;
+    btn.style.cssText = 'font-size:13px;padding:10px 6px';
+    btn.onclick = function(){ showBankGuide(bank); };
+    cont.appendChild(btn);
+  });
+}
+
+function showBankGuide(bank) {
+  var guide = document.getElementById('bank-guide');
+  var actions = document.getElementById('bank-guide-actions');
+  if(guide){ guide.style.display='block'; guide.textContent = bankGuides[bank]||''; }
+  if(actions){ actions.style.display='grid'; }
+}
+
+function sendStandingOrderConfirm() {
+  var phone = (currentSuccessOrder&&currentSuccessOrder.phone) ? currentSuccessOrder.phone.replace(/\D/g,'').replace(/^0/,'') : '';
+  var msg = encodeURIComponent('שלום! 🏦\nנא לשלוח אישור על הקמת הוראת הקבע.\nתודה! 🤍');
+  window.open('https://wa.me/'+(phone?'972'+phone:'')+' ?text='+msg, '_blank');
+}
+
+function openBitApp() { window.open('https://www.bitpay.co.il/', '_blank'); }
+function openPayboxApp() { window.open('https://payboxapp.page.link/pay', '_blank'); }
+function openPayWhatsapp() {
+  var phone = (currentSuccessOrder&&currentSuccessOrder.phone) ? currentSuccessOrder.phone.replace(/\D/g,'').replace(/^0/,'') : '';
+  var msg = encodeURIComponent('היי 😊 אשמח לעזור עם הסדרת התשלום!');
+  window.open('https://wa.me/'+(phone?'972'+phone:'')+' ?text='+msg, '_blank');
+}
+
+function initCustomPayScreen() {
+  var today = new Date().toISOString().split('T')[0];
+  var dateEl = document.getElementById('new-pay-date');
+  if(dateEl) dateEl.value = today;
+  updateCustomPayDisplay();
+}
+
+function addCustomPayment() {
+  var type = document.getElementById('new-pay-type').value;
+  var amount = parseFloat(document.getElementById('new-pay-amount').value)||0;
+  var date = document.getElementById('new-pay-date').value;
+  if(!amount){ toast('נא להזין סכום'); return; }
+  var today = new Date().toISOString().split('T')[0];
+  customPayments.push({ type:type, amount:amount, date:date, paid: date<=today });
+  document.getElementById('new-pay-amount').value = '';
+  updateCustomPayDisplay();
+}
+
+function updateCustomPayDisplay() {
+  var total = currentSuccessOrder ? (currentSuccessOrder.price||0) : 0;
+  var paid = customPayments.filter(function(p){ return p.paid; }).reduce(function(s,p){ return s+p.amount; },0);
+  var left = Math.max(0, total-paid);
+  var t=document.getElementById('custom-total-display'), p2=document.getElementById('custom-paid-display'), l=document.getElementById('custom-left-display');
+  if(t) t.textContent = total.toLocaleString('he-IL')+' ₪';
+  if(p2) p2.textContent = paid.toLocaleString('he-IL')+' ₪';
+  if(l) l.textContent = left.toLocaleString('he-IL')+' ₪';
+  var list = document.getElementById('custom-payments-list');
+  if(!list) return;
+  if(customPayments.length===0){ list.innerHTML='<p style="font-size:12px;color:var(--muted);text-align:center;padding:8px">אין תשלומים עדיין</p>'; return; }
+  list.innerHTML = '<table style="width:100%;font-size:12px;border-collapse:collapse">' +
+    '<tr style="color:var(--muted);border-bottom:1px solid var(--border)"><th style="text-align:right;padding:4px">סוג</th><th>סכום</th><th>תאריך</th><th>סטטוס</th><th></th></tr>' +
+    customPayments.map(function(p,i){
+      return '<tr style="border-bottom:1px solid var(--border)">' +
+        '<td style="padding:4px">'+p.type+'</td>' +
+        '<td>'+p.amount.toLocaleString('he-IL')+' \u20aa</td>' +
+        '<td>'+p.date+'</td>' +
+        '<td><span style="color:'+(p.paid?'#22c55e':'#f59e0b')+'">'+(p.paid?'✅ שולם':'⏳ ממתין')+'</span></td>' +
+        '<td style="display:flex;gap:4px">' +
+          '<button onclick="toggleCustomPay('+i+')" style="border:none;background:none;cursor:pointer;font-size:13px" title="שנה סטטוס">'+(p.paid?'↩':'✅')+'</button>' +
+          '<button onclick="deleteCustomPay('+i+')" style="border:none;background:none;cursor:pointer;font-size:13px;color:#ef4444" title="מחק">✕</button>' +
+        '</td>' +
+        '</tr>';
+    }).join('')+'</table>';
+  if(currentPayOrderId){
+    var idx=orders.findIndex(function(o){ return o.id===currentPayOrderId; });
+    if(idx!==-1){ orders[idx].payments=customPayments; saveOrders(); }
+    schedulePaymentReminders(customPayments, currentSuccessOrder);
+  }
+}
+
+function deleteCustomPay(i) {
+  customPayments.splice(i, 1);
+  updateCustomPayDisplay();
+}
+
+function toggleCustomPay(i){ customPayments[i].paid=!customPayments[i].paid; updateCustomPayDisplay(); }
+
+function markPaymentDone(method) {
+  if(currentPayOrderId){
+    var idx=orders.findIndex(function(o){ return o.id===currentPayOrderId; });
+    if(idx!==-1){ orders[idx].payMethod=method; orders[idx].payments=[{type:method,amount:orders[idx].price||0,date:new Date().toISOString().split('T')[0],paid:true}]; saveOrders(); }
+  }
+  toast('✅ תשלום סומן — '+method);
+  closeOrderSuccess();
+}
+
+function schedulePaymentReminders(payments, order) {
+  if(!order) return;
+  var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  reminders = reminders.filter(function(r){ return r.orderId!==currentPayOrderId; });
+  payments.forEach(function(p){
+    if(!p.paid) reminders.push({ orderId:currentPayOrderId, name:order.name||'', phone:order.phone||'', amount:p.amount, date:p.date, type:p.type, sent:false });
+  });
+  localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
+}
+
+function checkDueReminders() {
+  var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  var today = new Date().toISOString().split('T')[0];
+  var tomorrow = new Date(Date.now()+86400000).toISOString().split('T')[0];
+  var due = reminders.filter(function(r){ return !r.sent&&(r.date===today||r.date===tomorrow); });
+  window._dueReminders = due;
+  var cont = document.getElementById('reminders-container');
+  if(!cont) return;
+  if(due.length===0){ cont.style.display='none'; return; }
+  cont.style.display = 'block';
+  var inner = cont.querySelector('div');
+  if(!inner) return;
+  inner.innerHTML = due.map(function(r,i){
+    return '<div style="background:var(--card);border:2px solid #f59e0b;border-radius:12px;padding:14px;margin-bottom:10px">'+
+      '<div style="font-weight:700;margin-bottom:4px">⏰ תשלום ממתין</div>'+
+      '<div style="font-size:13px">לקוחה: <b>'+esc(r.name)+'</b></div>'+
+      '<div style="font-size:13px">סכום: <b>'+r.amount.toLocaleString('he-IL')+' ₪</b> · '+esc(r.type)+'</div>'+
+      '<div style="font-size:13px;margin-bottom:10px">תאריך: <b>'+r.date+'</b>'+(r.date===today?' — <span style="color:#ef4444">היום!</span>':' — מחר')+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        '<button class="btn btn-blue" onclick="sendReminderWhatsapp('+i+')" style="flex:1;font-size:12px">💬 וואטסאפ</button>'+
+        '<button class="btn" onclick="markReminderPaid('+i+')" style="flex:1;font-size:12px;background:#22c55e;color:#fff;border-color:#22c55e">✅ שולם</button>'+
+        '<button class="btn" onclick="snoozeReminder('+i+')" style="flex:1;font-size:12px">⏰ דחה</button>'+
+      '</div></div>';
+  }).join('');
+}
+
+function sendReminderWhatsapp(i) {
+  var r=(window._dueReminders||[])[i]; if(!r) return;
+  var phone=r.phone.replace(/\D/g,'').replace(/^0/,'');
+  var msg=encodeURIComponent('היי '+r.name+' ❤️\nתזכורת קטנה לגבי התשלום שנשאר עבור הפאה שלך 🙏\nסכום: '+r.amount.toLocaleString('he-IL')+' ₪ ('+r.type+')\nתאריך: '+r.date+'\nאפשר לשלם בביט / פייבוקס / העברה בנקאית.\nתודה רבה ❤️');
+  window.open('https://wa.me/972'+phone+'?text='+msg,'_blank');
+}
+
+function markReminderPaid(i) {
+  var r=(window._dueReminders||[])[i]; if(!r) return;
+  var reminders=JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  reminders.forEach(function(rem){ if(rem.orderId===r.orderId&&rem.date===r.date) rem.sent=true; });
+  localStorage.setItem('mirchoron_reminders',JSON.stringify(reminders));
+  checkDueReminders(); toast('✅ תשלום סומן כשולם');
+}
+
+function snoozeReminder(i) {
+  var r=(window._dueReminders||[])[i]; if(!r) return;
+  var reminders=JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  reminders.forEach(function(rem){
+    if(rem.orderId===r.orderId&&rem.date===r.date){ var d=new Date(rem.date); d.setDate(d.getDate()+1); rem.date=d.toISOString().split('T')[0]; }
+  });
+  localStorage.setItem('mirchoron_reminders',JSON.stringify(reminders));
+  checkDueReminders(); toast('⏰ תזכורת נדחתה ליום הבא');
+}
+
+function onPayTypeChange() {
+  var type = document.getElementById('new-pay-type').value;
+  var isStanding = (type === 'הוראת קבע');
+  var calc = document.getElementById('inline-standing-calc');
+  var singleBtn = document.getElementById('single-pay-btn');
+  var amountField = document.getElementById('new-pay-amount');
+  if(calc) calc.style.display = isStanding ? 'block' : 'none';
+  if(singleBtn) singleBtn.style.display = isStanding ? 'none' : 'block';
+  if(isStanding) {
+    if(amountField) amountField.value = '';
+    calcInlineStanding();
+  }
+}
+
+function getRemaining() {
+  var total = currentSuccessOrder ? (currentSuccessOrder.price||0) : 0;
+  var paid = customPayments.filter(function(p){ return p.paid; }).reduce(function(s,p){ return s+p.amount; },0);
+  // גם ממתינים נחשבים כ"מתוכנן"
+  var planned = customPayments.reduce(function(s,p){ return s+p.amount; },0);
+  return Math.max(0, total - planned);
+}
+
+function calcInlineStanding() {
+  var remaining = getRemaining();
+  var count = parseInt(document.getElementById('inline-count').value)||1;
+  var day = parseInt(document.getElementById('inline-day').value)||1;
+  if(day<1) day=1; if(day>28) day=28;
+  var perMonth = Math.ceil(remaining / count);
+  var result = document.getElementById('inline-calc-result');
+  if(!result) return;
+  if(remaining <= 0) {
+    result.innerHTML = '<span style="color:#22c55e">אין יתרה לתשלום</span>';
+    return;
+  }
+  // חשב תאריכים
+  var dates = [];
+  var now = new Date();
+  for(var i=0; i<Math.min(count,6); i++) {
+    var d = new Date(now.getFullYear(), now.getMonth()+i, day);
+    if(d <= now) d = new Date(now.getFullYear(), now.getMonth()+i+1, day);
+    dates.push(d.toLocaleDateString('he-IL', {day:'numeric',month:'numeric'}));
+  }
+  var datesStr = dates.join(', ') + (count>6?' ...' : '');
+  result.innerHTML =
+    'נשאר: <b>'+remaining.toLocaleString('he-IL')+' ₪</b><br>' +
+    count+' תשלומים × <b>'+perMonth.toLocaleString('he-IL')+' ₪</b><br>' +
+    'תאריכים: '+datesStr;
+  result.dataset.count = count;
+  result.dataset.perMonth = perMonth;
+  result.dataset.day = day;
+}
+
+function applyInlineStanding() {
+  var result = document.getElementById('inline-calc-result');
+  if(!result || !result.dataset.count) { toast('הזיני פרטים קודם'); return; }
+  var remaining = getRemaining();
+  if(remaining <= 0) { toast('אין יתרה לתשלום'); return; }
+  var count = parseInt(result.dataset.count);
+  var perMonth = parseInt(result.dataset.perMonth);
+  var day = parseInt(result.dataset.day);
+  var now = new Date();
+  for(var i=0; i<count; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth()+i, day);
+    if(d <= now) d = new Date(now.getFullYear(), now.getMonth()+i+1, day);
+    customPayments.push({ type:'הוראת קבע', amount:perMonth, date:d.toISOString().split('T')[0], paid:false });
+  }
+  updateCustomPayDisplay();
+  // הסתר מחשבון
+  document.getElementById('inline-standing-calc').style.display = 'none';
+  document.getElementById('single-pay-btn').style.display = 'block';
+  document.getElementById('new-pay-type').value = 'מזומן';
+  toast(count+' תשלומי הוראת קבע נוספו');
+}
+
+function confirmStandingOrder() {
+  var calc = document.getElementById('standing-calc');
+  if(!calc || !calc.dataset.count) { toast('הזיני פרטים קודם'); return; }
+  var count = parseInt(calc.dataset.count);
+  var perMonth = parseInt(calc.dataset.perMonth);
+  var day = parseInt(calc.dataset.day);
+  var now = new Date();
+  for(var i=0; i<count; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth()+i, day);
+    if(d <= now) d = new Date(now.getFullYear(), now.getMonth()+i+1, day);
+    customPayments.push({ type:'הוראת קבע', amount:perMonth, date:d.toISOString().split('T')[0], paid:false });
+  }
+  updateCustomPayDisplay();
+  toast('פריסת '+count+' תשלומים נוספה');
+  openPayScreen('custom');
+}
+
+function markStandingDone() {
+  if(document.getElementById('standing-calc').dataset.count) confirmStandingOrder();
+  saveCustomPayments();
+  toast('הוראת הקבע נשמרה');
+}
+
+function saveCustomPayments() {
+  if(currentPayOrderId) {
+    var idx = orders.findIndex(function(o){ return o.id===currentPayOrderId; });
+    if(idx!==-1) { orders[idx].payments=customPayments; saveOrders(); }
+    schedulePaymentReminders(customPayments, currentSuccessOrder);
+  }
+  toast('תשלומים נשמרו');
+}
+
+function calcStanding() {
+  var remaining = getRemaining();
+  var count = parseInt(document.getElementById('standing-count').value)||1;
+  var day = parseInt(document.getElementById('standing-day').value)||1;
+  if(day<1) day=1; if(day>28) day=28;
+  var calc = document.getElementById('standing-calc');
+  if(!calc) return;
+  if(remaining <= 0) { calc.innerHTML='<span style="color:#22c55e">אין יתרה לתשלום</span>'; return; }
+  var perMonth = Math.ceil(remaining / count);
+  var dates = [], now = new Date();
+  for(var i=0; i<Math.min(count,6); i++) {
+    var d = new Date(now.getFullYear(), now.getMonth()+i, day);
+    if(d <= now) d = new Date(now.getFullYear(), now.getMonth()+i+1, day);
+    dates.push(d.toLocaleDateString('he-IL', {day:'numeric',month:'numeric'}));
+  }
+  calc.innerHTML =
+    '<div style="font-weight:700;margin-bottom:4px">פריסה מוצעת:</div>' +
+    '<div>נשאר: <b>'+remaining.toLocaleString('he-IL')+' ₪</b></div>' +
+    '<div>'+count+' תשלומים × <b>'+perMonth.toLocaleString('he-IL')+' ₪</b> לחודש</div>' +
+    '<div>ב-'+day+' לכל חודש</div>' +
+    '<div style="font-size:11px;color:var(--muted);margin-top:4px">תאריכים: '+dates.join(', ')+(count>6?' ...':'')+'</div>';
+  calc.dataset.count = count;
+  calc.dataset.perMonth = perMonth;
+  calc.dataset.day = day;
+}
+
+function calcStandingOnOpen() {
+  var remaining = getRemaining();
+  var calc = document.getElementById('standing-calc');
+  if(calc) calc.innerHTML = '<span style="color:var(--muted)">נשאר לתשלום: <b>'+remaining.toLocaleString('he-IL')+' \u20aa</b> — הזיני מספר תשלומים ויום חיוב</span>';
+  calcStanding();
 }
 
 function applyDensityDiscount() {
