@@ -3179,6 +3179,7 @@ function switchAdminTab(tab) {
     if (el) el.className = 'admin-tab' + (tab===t ? ' active' : '');
   });
   if (tab==='customers') renderAdminCustomers();
+  if (tab==='settings') { loadBankAccount(); }
 }
 
 function applyFontSize(val, fromNum) {
@@ -4658,6 +4659,33 @@ function calcStandingOnOpen() {
   if(calc) calc.innerHTML = '<span style="color:var(--muted)">נשאר לתשלום: <b>'+remaining.toLocaleString('he-IL')+' \u20aa</b> — הזיני מספר תשלומים ויום חיוב</span>';
   calcStanding();
 }
+
+function saveBankAccount() {
+  var acct = {
+    bank:   (document.getElementById('acct-bank')     ||{}).value||'',
+    bankNum:(document.getElementById('acct-bank-num') ||{}).value||'',
+    branch: (document.getElementById('acct-branch')   ||{}).value||'',
+    number: (document.getElementById('acct-number')   ||{}).value||'',
+    name:   (document.getElementById('acct-name')     ||{}).value||''
+  };
+  localStorage.setItem(STORE_KEY+'_bank_acct', JSON.stringify(acct));
+  toast('פרטי החשבון נשמרו');
+}
+
+function loadBankAccount() {
+  try {
+    var s = localStorage.getItem(STORE_KEY+'_bank_acct');
+    if (!s) return;
+    var acct = JSON.parse(s);
+    var setV = function(id, v){ var el=document.getElementById(id); if(el&&v) el.value=v; };
+    setV('acct-bank',     acct.bank);
+    setV('acct-bank-num', acct.bankNum);
+    setV('acct-branch',   acct.branch);
+    setV('acct-number',   acct.number);
+    setV('acct-name',     acct.name);
+  } catch(e){}
+}
+
 
 function applyDensityDiscount() {
   var density = document.getElementById('wig-density');
