@@ -1544,18 +1544,81 @@ const TYPE_CATS   = ['הכל','פאת סקין','פאת לייס טופ','פאת
 const COLOR_CATS  = ['הכל','שחור','חום','בלונד','בלונד בהיר'];
 const STYLE_CATS  = ['הכל','חלק','גל תחתון','גל עליון','תלתלים'];
 const LENGTH_CATS = ['הכל','10"','12"','14"','16"','18"','20"','22"','24"','26"','28"','30"'];
-let galPhotos = loadGal();
-let activeType = 'הכל';
-let activeColor = 'הכל';
-let activeStyle = 'הכל';
-let activeLength = 'הכל';
-let lbPhotos = [];
-let lbIdx = 0;
-let lbWigInfo = null;
+// ── IndexedDB לגלריה ──
+var IDB_NAME = 'mirchoron_gal_db';
+var IDB_STORE = 'photos';
+var _idb = null;
 
-function loadGal() {
+function openIDB() {
+  return new Promise(function(resolve, reject) {
+    if (_idb) { resolve(_idb); return; }
+    var req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'idx' });
+      }
+    };
+    req.onsuccess = function(e) { _idb = e.target.result; resolve(_idb); };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+
+function saveGal() {
+  openIDB().then(function(db) {
+    var tx = db.transaction(IDB_STORE, 'readwrite');
+    var store = tx.objectStore(IDB_STORE);
+    store.clear();
+    galPhotos.forEach(function(p, i) {
+      store.put(Object.assign({}, p, { idx: i }));
+    });
+    tx.oncomplete = function() {};
+    tx.onerror = function() {
+      console.warn('saveGal IDB failed, falling back to localStorage');
+      saveGalLocalStorage();
+    };
+  }).catch(function() {
+    saveGalLocalStorage();
+  });
+}
+
+function saveGalLocalStorage() {
   try {
-    // פורמט chunks חדש
+    if (galPhotos.length === 0) {
+      var existing = localStorage.getItem(STORE_KEY+"_gal_0") || localStorage.getItem(STORE_KEY+"_gal");
+      if (existing) { console.warn('saveGal: blocked saving empty over existing'); return; }
+    }
+    var i = 0;
+    while (localStorage.getItem(STORE_KEY+"_gal_"+i) !== null) { localStorage.removeItem(STORE_KEY+"_gal_"+i); i++; }
+    localStorage.removeItem(STORE_KEY+"_gal");
+    var CHUNK = 5;
+    var chunks = Math.ceil(galPhotos.length / CHUNK) || 1;
+    for (var c = 0; c < chunks; c++) {
+      try { localStorage.setItem(STORE_KEY+"_gal_"+c, JSON.stringify(galPhotos.slice(c*CHUNK,(c+1)*CHUNK))); }
+      catch(e) { toast('⚠️ מקום מלא בגלריה — ייצא גיבוי!'); break; }
+    }
+    localStorage.setItem(STORE_KEY+"_gal_chunks", String(chunks));
+  } catch(e) { console.warn('saveGalLocalStorage failed', e); }
+}
+
+function loadGalFromIDB() {
+  return openIDB().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readonly');
+      var store = tx.objectStore(IDB_STORE);
+      var req = store.getAll();
+      req.onsuccess = function() {
+        var results = req.result || [];
+        results.sort(function(a,b){ return a.idx - b.idx; });
+        resolve(results.map(function(p){ var c=Object.assign({},p); delete c.idx; return c; }));
+      };
+      req.onerror = function() { reject(req.error); };
+    });
+  });
+}
+
+function loadGalFromLocalStorage() {
+  try {
     var n = parseInt(localStorage.getItem(STORE_KEY+"_gal_chunks") || "0");
     if (n > 0) {
       var all = [];
@@ -1565,41 +1628,70 @@ function loadGal() {
       }
       if (all.length > 0) return all;
     }
-    // פולבק לפורמטים ישנים
     var keys = [STORE_KEY+"_gal","mirchoron_v2_gal","mirchoron_v1_gal"];
-    for (var i=0;i<keys.length;i++) {
+    for (var i=0; i<keys.length; i++) {
       var s = localStorage.getItem(keys[i]);
       if (s) { var d=JSON.parse(s); if(d.length>0) return d; }
     }
-    return [];
-  } catch(e){ return []; }
+  } catch(e) {}
+  return [];
 }
-var GAL_CHUNK = 10;
-function saveGal() {
-  try {
-    // הגנה: אל תשמור ריק אם יש נתונים קיימים בStorage
-    if (galPhotos.length === 0) {
-      var existing = localStorage.getItem(STORE_KEY+"_gal_0") || localStorage.getItem(STORE_KEY+"_gal");
-      if (existing) {
-        console.warn('saveGal: blocked saving empty galPhotos over existing data');
-        return;
+
+function loadGal() {
+  // טוען מ-localStorage סינכרונית כהתחלה
+  var lsData = loadGalFromLocalStorage();
+  // ואז מ-IndexedDB אסינכרונית — אם יש יותר נתונים
+  loadGalFromIDB().then(function(idbData) {
+    if (idbData.length > 0) {
+      // אם יש נתונים ב-IDB — השתמש בהם
+      galPhotos = idbData;
+      // אם גם ב-localStorage — העדף את הגדול יותר
+      if (lsData.length > idbData.length) {
+        galPhotos = lsData;
+        saveGal(); // העבר ל-IDB
       }
+      renderGallery();
+      renderGalAdminList();
+      // נקה localStorage של גלריה כדי לפנות מקום
+      migrateGalToIDB();
+    } else if (lsData.length > 0) {
+      // יש רק ב-localStorage — העבר ל-IDB
+      galPhotos = lsData;
+      saveGal();
+      renderGallery();
+      renderGalAdminList();
+      migrateGalToIDB();
     }
-    var i = 0;
-    while (localStorage.getItem(STORE_KEY+"_gal_"+i) !== null) {
-      localStorage.removeItem(STORE_KEY+"_gal_"+i); i++;
+  }).catch(function() {
+    // IDB לא זמין — נשאר עם localStorage
+    if (lsData.length > 0 && galPhotos.length === 0) {
+      galPhotos = lsData;
+      renderGallery();
+      renderGalAdminList();
     }
-    localStorage.removeItem(STORE_KEY+"_gal");
-    var chunks = Math.ceil(galPhotos.length / GAL_CHUNK) || 1;
-    for (var c = 0; c < chunks; c++) {
-      localStorage.setItem(STORE_KEY+"_gal_"+c, JSON.stringify(galPhotos.slice(c*GAL_CHUNK,(c+1)*GAL_CHUNK)));
-    }
-    localStorage.setItem(STORE_KEY+"_gal_chunks", String(chunks));
-  } catch(e) {
-    console.warn('saveGal failed:', e);
-    toast("⚠️ שגיאה בשמירת גלריה — נסה תמונות קטנות יותר");
-  }
+  });
+  return lsData; // החזר מיד מ-localStorage
 }
+
+function migrateGalToIDB() {
+  // נקה נתוני גלריה מ-localStorage כדי לפנות מקום
+  setTimeout(function() {
+    try {
+      var i = 0;
+      while (localStorage.getItem(STORE_KEY+"_gal_"+i) !== null) {
+        localStorage.removeItem(STORE_KEY+"_gal_"+i); i++;
+      }
+      localStorage.removeItem(STORE_KEY+"_gal");
+      localStorage.removeItem(STORE_KEY+"_gal_chunks");
+      console.log('Migrated gallery to IndexedDB, freed localStorage');
+      checkStorageSpace();
+    } catch(e) {}
+  }, 3000);
+}
+
+var GAL_CHUNK = 10; // kept for backup compatibility
+let galPhotos = loadGal();
+
 
 function renderGallery() {
   var tabsEl = document.getElementById('cat-tabs');
@@ -3347,6 +3439,7 @@ function exportReport(type) {
 
 
 function exportBackup() {
+  // galPhotos כבר טעון בזיכרון (מ-IDB או localStorage)
   var backup = {
     version: 3,
     exported: new Date().toISOString(),
@@ -3364,7 +3457,7 @@ function exportBackup() {
   a.href = URL.createObjectURL(blob);
   a.download = 'גיבוי_מחירון_' + new Date().toLocaleDateString('he-IL').replace(/\//g,'-') + '.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  toast('גיבוי יוצא בהצלחה!');
+  toast('גיבוי יוצא בהצלחה! (' + galPhotos.length + ' תמונות, ' + orders.length + ' הזמנות)');
 }
 
 function importBackup(input) {
@@ -4305,12 +4398,16 @@ function schedulePaymentReminders(payments, order) {
   localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
 }
 
+// ── התראות תשלום ──
+var OWNER_PHONES = ['0587277033', '0534207705'];
+
 function checkDueReminders() {
   var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
   var today = new Date().toISOString().split('T')[0];
   var tomorrow = new Date(Date.now()+86400000).toISOString().split('T')[0];
   var due = reminders.filter(function(r){ return !r.sent&&(r.date===today||r.date===tomorrow); });
   window._dueReminders = due;
+
   var cont = document.getElementById('reminders-container');
   if(!cont) return;
   if(due.length===0){ cont.style.display='none'; return; }
@@ -4324,12 +4421,79 @@ function checkDueReminders() {
       '<div style="font-size:13px">סכום: <b>'+r.amount.toLocaleString('he-IL')+' ₪</b> · '+esc(r.type)+'</div>'+
       '<div style="font-size:13px;margin-bottom:10px">תאריך: <b>'+r.date+'</b>'+(r.date===today?' — <span style="color:#ef4444">היום!</span>':' — מחר')+'</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button class="btn btn-blue" onclick="sendReminderWhatsapp('+i+')" style="flex:1;font-size:12px">💬 וואטסאפ</button>'+
+        '<button class="btn btn-blue" onclick="sendReminderWhatsapp('+i+')" style="flex:1;font-size:12px">💬 שלח ללקוחה</button>'+
         '<button class="btn" onclick="markReminderPaid('+i+')" style="flex:1;font-size:12px;background:#22c55e;color:#fff;border-color:#22c55e">✅ שולם</button>'+
         '<button class="btn" onclick="snoozeReminder('+i+')" style="flex:1;font-size:12px">⏰ דחה</button>'+
       '</div></div>';
   }).join('');
+
+  // הצג popup
+  showDuePaymentsPopup(due, today);
 }
+
+function showDuePaymentsPopup(due, today) {
+  var existing = document.getElementById('due-payments-popup');
+  if(existing) existing.remove();
+
+  var todayDue = due.filter(function(r){ return r.date === today; });
+  if(todayDue.length === 0) return;
+
+  var popup = document.createElement('div');
+  popup.id = 'due-payments-popup';
+  popup.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px';
+
+  var names = todayDue.map(function(r){ return r.name; }).filter(function(v,i,a){ return a.indexOf(v)===i; });
+  var totalAmount = todayDue.reduce(function(s,r){ return s+r.amount; },0);
+
+  var rows = todayDue.map(function(r){
+    return '<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px 8px">'+esc(r.name)+'</td><td>'+r.amount.toLocaleString('he-IL')+' ₪</td><td>'+esc(r.type)+'</td></tr>';
+  }).join('');
+
+  popup.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;direction:rtl">'+
+    '<div style="font-size:22px;font-weight:800;margin-bottom:6px;color:#f59e0b">⏰ תשלומים להיום!</div>'+
+    '<div style="font-size:14px;color:#6b7280;margin-bottom:16px">'+new Date().toLocaleDateString('he-IL', {weekday:'long',day:'numeric',month:'long'})+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">'+
+    '<tr style="background:#f9fafb;font-weight:700"><th style="padding:6px 8px;text-align:right">לקוחה</th><th>סכום</th><th>אמצעי</th></tr>'+
+    rows+
+    '</table>'+
+    '<div style="font-size:15px;font-weight:700;margin-bottom:16px">סה"כ להיום: <span style="color:#2563eb">'+totalAmount.toLocaleString('he-IL')+' ₪</span></div>'+
+    '<div style="display:grid;gap:8px">'+
+    '<button onclick="sendDailyPaymentSummaryWhatsapp()" style="background:#25D366;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%">📲 שלח סיכום לוואטסאפ (רחלי + בעל)</button>'+
+    '<button onclick="document.getElementById(\'due-payments-popup\').remove()" style="background:#f3f4f6;color:#374151;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;width:100%">סגור</button>'+
+    '</div></div>';
+
+  document.body.appendChild(popup);
+}
+
+function sendDailyPaymentSummaryWhatsapp() {
+  var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  var today = new Date().toISOString().split('T')[0];
+  var todayDue = reminders.filter(function(r){ return !r.sent && r.date === today; });
+  if(todayDue.length === 0) { toast('אין תשלומים להיום'); return; }
+
+  var dateHe = new Date().toLocaleDateString('he-IL', {weekday:'long',day:'numeric',month:'long'});
+  var lines = todayDue.map(function(r){
+    return '• '+r.name+' — '+r.amount.toLocaleString('he-IL')+' ₪ ('+r.type+')';
+  });
+  var total = todayDue.reduce(function(s,r){ return s+r.amount; },0);
+  var msg = 'תזכורת תשלומים להיום '+dateHe+' 💰\n\n'+lines.join('\n')+'\n\nסה"כ: '+total.toLocaleString('he-IL')+' ₪';
+
+  // שלח לרחלי
+  var phone1 = OWNER_PHONES[0].replace(/^0/,'');
+  window.open('https://wa.me/972'+phone1+'?text='+encodeURIComponent(msg), '_blank');
+
+  // שלח לבעל אחרי שניה
+  setTimeout(function(){
+    var phone2 = OWNER_PHONES[1].replace(/^0/,'');
+    window.open('https://wa.me/972'+phone2+'?text='+encodeURIComponent(msg), '_blank');
+  }, 1500);
+
+  document.getElementById('due-payments-popup') && document.getElementById('due-payments-popup').remove();
+  toast('ההודעות נשלחו');
+}
+
+
 
 function sendReminderWhatsapp(i) {
   var r=(window._dueReminders||[])[i]; if(!r) return;
