@@ -531,7 +531,7 @@ button.tab-btn.active{
         </div>
       </div>
       <div class="g3" id="wig-fixed-data-row" style="display:none">
-        <div class="field" id="wig-type-field"><label>סוג פאה</label><select id="wig-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select><div class="lock-note" id="wig-type-lock-note" style="display:none">נבחר אוטומטית מהמחירון</div></div>
+        <div class="field" id="wig-type-field"><label>סוג פאה</label><select id="wig-type" onchange="updateDensityOptions(this.value)"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select><div class="lock-note" id="wig-type-lock-note" style="display:none">נבחר אוטומטית מהמחירון</div></div>
         <div class="field" id="wig-length-field"><label>אורך פאה</label><input type="text" id="wig-length" placeholder='למשל 18&quot;'><div class="lock-note" id="wig-length-lock-note" style="display:none">נבחר אוטומטית מהמחירון</div></div>
         <div class="field" id="wig-structure-field"><label>מבנה</label><select id="wig-structure"><option value="">בחרי</option><option value="tiny">דירוג קל</option><option value="no layer">ללא דירוג</option></select><div class="lock-note" id="wig-structure-lock-note" style="display:none">נבחר אוטומטית מהמחירון</div></div>
       </div>
@@ -539,8 +539,8 @@ button.tab-btn.active{
         <div class="field"><label>צפיפות</label>
           <select id="wig-density" onchange="applyDensityDiscount()">
             <option value="">בחרי</option>
-            <option value="130">130% (סטנדרט)</option>
-            <option value="110">110% (הנחה ₪170)</option>
+            <option value="110" selected>110% (סטנדרט)</option>
+            <option value="130">130% (+₪170)</option>
           </select>
         </div>
       <div class="field"><label>סוג תלתול</label><select id="wig-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
@@ -1091,7 +1091,7 @@ function defaultData() {
       ]
     },
     'lace-blonde': {
-      title: 'פאת לייס טופ — בלונד', badge: '',
+      title: 'פאת לייס טופ — בלונד', badge: '110% / 130%',
       cols: ['דירוג', 'ללא דירוג'],
       rows: [
         {len:'12"',col1:null,col2:486},{len:'14"',col1:486,col2:606},
@@ -1101,7 +1101,7 @@ function defaultData() {
       ]
     },
     'lace-light': {
-      title: 'פאת לייס טופ — בלונד בהיר', badge: '',
+      title: 'פאת לייס טופ — בלונד בהיר', badge: '110% / 130%',
       cols: ['דירוג', 'ללא דירוג'],
       rows: [
         {len:'12"',col1:null,col2:486},{len:'14"',col1:486,col2:636},
@@ -1250,6 +1250,8 @@ function setOrderFixedFields(mode, item){
   if(type) type.value=item.wigType||'';
   if(len) len.value=item.len||'';
   if(structure) structure.value=item.structure||'';
+  // עדכן אפשרויות צפיפות לפי סוג הפאה
+  if(item.wigType) updateDensityOptions(item.wigType);
   var isPrice = mode==='price';
   ['wig-type','wig-length','wig-structure'].forEach(function(id){ setLockedField(id, isPrice); });
   ['wig-type-lock-note','wig-length-lock-note','wig-structure-lock-note'].forEach(function(id){ var n=document.getElementById(id); if(n) n.style.display=isPrice?'':'none'; });
@@ -1660,9 +1662,11 @@ function loadGal() {
     if (idbData.length > 0) {
       // אם יש נתונים ב-IDB — השתמש בהם
       galPhotos = idbData;
+      ensureGalGroupIds();
       // אם גם ב-localStorage — העדף את הגדול יותר
       if (lsData.length > idbData.length) {
         galPhotos = lsData;
+        ensureGalGroupIds();
         saveGal(); // העבר ל-IDB
       }
       renderGallery();
@@ -1672,6 +1676,7 @@ function loadGal() {
     } else if (lsData.length > 0) {
       // יש רק ב-localStorage — העבר ל-IDB
       galPhotos = lsData;
+      ensureGalGroupIds();
       saveGal();
       renderGallery();
       renderGalAdminList();
@@ -1681,6 +1686,7 @@ function loadGal() {
     // IDB לא זמין — נשאר עם localStorage
     if (lsData.length > 0 && galPhotos.length === 0) {
       galPhotos = lsData;
+      ensureGalGroupIds();
       renderGallery();
       renderGalAdminList();
     }
@@ -1714,6 +1720,40 @@ let lbPhotos = [];
 let lbIdx = 0;
 let lbWigInfo = null;
 
+
+
+function galGroupKey(p, i) {
+  // מזהה פנימי קבוע לכל פאה. חשוב: לא מקבצים לפי שם כדי שלא יתערבבו פאות עם אותו שם.
+  if (p && p.groupId) return String(p.groupId);
+  if (p && p.gid) return String(p.gid);
+  // תמונות ישנות מאוד בלי groupId יישארו יחד לפי שם כדי לא לשבור קטלוגים קיימים.
+  return 'legacy_' + (p && p.name ? String(p.name) : String(i));
+}
+
+function buildGalGroups(list) {
+  var groups = {};
+  var order = [];
+  (list || []).forEach(function(p, i) {
+    var key = galGroupKey(p, i);
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push({ p: p, i: i, key: key });
+  });
+  order.forEach(function(key){
+    groups[key].sort(function(a,b){ return (b.p.isPrimary?1:0)-(a.p.isPrimary?1:0); });
+  });
+  return { groups: groups, order: order };
+}
+
+function ensureGalGroupIds() {
+  var changed = false;
+  galPhotos.forEach(function(p, i) {
+    if (!p.groupId) {
+      p.groupId = 'legacy_' + (p.name || 'photo') + '_' + i;
+      changed = true;
+    }
+  });
+  if (changed) saveGal();
+}
 
 function renderGallery() {
   var tabsEl = document.getElementById('cat-tabs');
@@ -1803,34 +1843,29 @@ function renderGallery() {
     return typeMatch && colorMatch && styleMatch && lengthMatch;
   });
 
-  var groups = {};
-  filtered.forEach(function(p) {
-    if (!groups[p.name]) groups[p.name] = [];
-    groups[p.name].push(p);
-  });
-  // סדר כל קבוצה — ראשית ראשונה
-  Object.keys(groups).forEach(function(n){
-    groups[n].sort(function(a,b){ return (b.isPrimary?1:0)-(a.isPrimary?1:0); });
-  });
+  var built = buildGalGroups(filtered);
+  var groups = built.groups;
+  var keys = built.order;
 
   var grid  = document.getElementById('gallery-grid');
   var empty = document.getElementById('gallery-empty');
-  var keys  = Object.keys(groups);
   if (keys.length===0) { grid.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display = 'none';
   grid.innerHTML = '';
-  keys.forEach(function(name) {
+  keys.forEach(function(gid) {
+    var first = groups[gid][0].p;
+    var displayName = first.name || 'פאה מהגלריה';
     var div = document.createElement('div');
     div.className = 'gal-item';
-    div.onclick = (function(n){ return function(){ openLb(n); }; })(name);
+    div.onclick = (function(g){ return function(){ openLb(g); }; })(gid);
     var img = document.createElement('img');
-    img.src = groups[name][0].url;
+    img.src = first.url;
     img.loading = 'lazy';
-    img.alt = name;
+    img.alt = displayName;
     div.appendChild(img);
     var lbl = document.createElement('div');
     lbl.style.cssText = 'position:absolute;bottom:0;right:0;left:0;background:rgba(0,0,0,0.55);color:#fff;font-size:11px;padding:4px 6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    lbl.textContent = name;
+    lbl.textContent = displayName;
     div.style.position = 'relative';
     div.appendChild(lbl);
     grid.appendChild(div);
@@ -1862,10 +1897,10 @@ function toggleFilter(name) {
 }
 
 
-function getGalleryGroupByName(name){
-  var groups={};
-  galPhotos.forEach(function(p){ if(!groups[p.name]) groups[p.name]=[]; groups[p.name].push(p); });
-  return groups[name]||[];
+function getGalleryGroupByName(groupId){
+  var items = [];
+  galPhotos.forEach(function(p, i){ if(galGroupKey(p, i) === String(groupId)) items.push(p); });
+  return items;
 }
 function inferGalleryPriceInfo(p){
   if(!p) return {price:0,col:'מהגלריה'};
@@ -1980,15 +2015,15 @@ function openOrderFromGallery(){
   setTimeout(initSignaturePad, 100);
 }
 
-function openLb(encodedName) {
-  const name = decodeURIComponent(encodedName);
+function openLb(groupId) {
+  var gid = String(groupId);
   var items = [];
-  galPhotos.forEach(function(p){ if(p.name===name) items.push(p); });
+  galPhotos.forEach(function(p, i){ if(galGroupKey(p, i) === gid) items.push(p); });
   // תמונה ראשית ראשונה
   items.sort(function(a,b){ return (b.isPrimary?1:0)-(a.isPrimary?1:0); });
   lbPhotos = items.map(function(p){ return p.url; });
-  lbWigInfo = items.length > 0 ? items[0] : null;
-  if (lbWigInfo) lbWigInfo.name = name;
+  lbWigInfo = items.length > 0 ? Object.assign({}, items[0]) : null;
+  if (lbWigInfo) lbWigInfo.groupId = gid;
   lbIdx = 0;
   updateLb();
   document.getElementById('lightbox').classList.add('open');
@@ -2028,7 +2063,7 @@ document.getElementById('lb-img').addEventListener('touchend', e=>{
 function compressImage(dataUrl, callback) {
   var img = new Image();
   img.onload = function() {
-    var MAX = 900;
+    var MAX = 720;
     var w = img.width, h = img.height;
     if (w > MAX || h > MAX) {
       if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -2037,7 +2072,7 @@ function compressImage(dataUrl, callback) {
     var canvas = document.createElement('canvas');
     canvas.width = w; canvas.height = h;
     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-    callback(canvas.toDataURL('image/jpeg', 0.72));
+    callback(canvas.toDataURL('image/jpeg', 0.58));
   };
   img.src = dataUrl;
 }
@@ -2093,8 +2128,8 @@ function deleteGalPhoto(idx) {
   toast('התמונה נמחקה');
 }
 
-function deleteGalGroup(name) {
-  galPhotos = galPhotos.filter(function(p){ return (p.groupId||('solo_'+galPhotos.indexOf(p))) !== name; });
+function deleteGalGroup(groupId) {
+  galPhotos = galPhotos.filter(function(p, i){ return galGroupKey(p, i) !== String(groupId); });
   saveGal();
   renderGallery();
   renderGalAdminList();
@@ -2108,7 +2143,7 @@ function renderGalAdminList() {
   var groups = {};
   var groupOrder = [];
   galPhotos.forEach(function(p,i){
-    var key = p.groupId || ('solo_'+i);
+    var key = galGroupKey(p, i);
     if (!groups[key]) { groups[key]=[]; groupOrder.push(key); }
     groups[key].push({p:p,i:i});
   });
@@ -2156,10 +2191,10 @@ function openAdminLb(encodedName) {
   var name = decodeURIComponent(encodedName);
   var items = [];
   galPhotos.forEach(function(p,i){
-    var key = p.groupId || ('solo_'+i);
-    if(key===name) items.push({p:p,i:i});
+    var key = galGroupKey(p, i);
+    if(key===String(encodedName)) items.push({p:p,i:i});
   });
-  document.getElementById('admin-lb-title').textContent = name + ' (' + items.length + ' תמונות)';
+  document.getElementById('admin-lb-title').textContent = ((items[0] && items[0].p && items[0].p.name) || 'פאה') + ' (' + items.length + ' תמונות)';
   var grid = document.getElementById('admin-lb-grid');
   grid.innerHTML = '';
   items.forEach(function(obj){
@@ -2175,7 +2210,7 @@ function openAdminLb(encodedName) {
       galPhotos.splice(idx,1);
       saveGal(); renderGallery(); renderGalAdminList();
       openAdminLb(enc);
-      if(galPhotos.filter(function(p){return p.name===decodeURIComponent(enc);}).length===0)
+      if(galPhotos.filter(function(p,i){return galGroupKey(p,i)===String(enc);}).length===0)
         document.getElementById('admin-lb').classList.remove('open');
       toast('התמונה נמחקה');
     };})(obj.i, encodedName);
@@ -2193,8 +2228,8 @@ function openAdminLb(encodedName) {
       // הסר isPrimary מכל התמונות בקבוצה
       var grpName = decodeURIComponent(enc);
       galPhotos.forEach(function(ph, i){
-        var key = ph.groupId || ('solo_'+i);
-        if (key === grpName) ph.isPrimary = false;
+        var key = galGroupKey(ph, i);
+        if (key === String(enc)) ph.isPrimary = false;
       });
       galPhotos[idx].isPrimary = true;
       saveGal();
@@ -4947,6 +4982,33 @@ function loadBankAccount() {
 }
 
 
+function updateDensityOptions(wigType) {
+  var sel = document.getElementById('wig-density');
+  if (!sel) return;
+  var currentVal = sel.value;
+  sel.innerHTML = '<option value="">בחרי</option>';
+  if (wigType === 'silk top') {
+    // פאת סקין — 130% בלבד
+    sel.innerHTML += '<option value="130">130% (סטנדרט)</option>';
+    sel.value = '130';
+  } else if (wigType === 'lace top') {
+    // פאת לייס טופ — 110% ברירת מחדל, 130% אפשרות
+    sel.innerHTML += '<option value="110" selected>110% (סטנדרט)</option>';
+    sel.innerHTML += '<option value="130">130% (+₪170)</option>';
+    sel.value = currentVal === '130' ? '130' : '110';
+  } else if (wigType === 'band fall') {
+    // פאת סרט — שניהם
+    sel.innerHTML += '<option value="110">110%</option>';
+    sel.innerHTML += '<option value="130">130%</option>';
+    sel.value = currentVal || '';
+  } else {
+    // ברירת מחדל
+    sel.innerHTML += '<option value="110">110% (סטנדרט)</option>';
+    sel.innerHTML += '<option value="130">130% (+₪170)</option>';
+  }
+  applyDensityDiscount();
+}
+
 function applyDensityDiscount() {
   var density = document.getElementById('wig-density');
   var priceEl = document.getElementById('ord-price');
@@ -4954,11 +5016,15 @@ function applyDensityDiscount() {
   var basePrice = pendingOrder.originalPrice || pendingOrder.price;
   pendingOrder.originalPrice = basePrice;
   var noteEl = document.getElementById('density-note');
-  if (density.value === '110') {
-    var rate = usdRate || lastRate || 0;
-    var discount = 170;
-    priceEl.value = Math.max(0, basePrice - discount);
-    if (noteEl) noteEl.textContent = 'הנחה: ₪170';
+  var wigType = (document.getElementById('wig-type')||{}).value || '';
+  if (density.value === '130' && wigType === 'lace top') {
+    // לייס טופ — 130% הוא תוספת של 170 מעל ה-110%
+    priceEl.value = basePrice + 170;
+    if (noteEl) noteEl.textContent = 'תוספת 130%: +₪170';
+  } else if (density.value === '110' || density.value === '130') {
+    // 110% = מחיר בסיס | סקין/סרט 130% = מחיר בסיס
+    priceEl.value = basePrice;
+    if (noteEl) noteEl.textContent = '';
   } else {
     priceEl.value = basePrice;
     if (noteEl) noteEl.textContent = '';
