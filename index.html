@@ -546,8 +546,8 @@ button.tab-btn.active{
         <div class="field"><label>צפיפות</label>
           <select id="wig-density" onchange="applyDensityDiscount()">
             <option value="">בחרי</option>
-            <option value="110" selected>110% (סטנדרט)</option>
-            <option value="130">130% (+₪170)</option>
+            <option value="130" selected>130% (סטנדרט)</option>
+            <option value="110">110% (הנחה ₪170)</option>
           </select>
         </div>
       <div class="field"><label>סוג תלתול</label><select id="wig-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
@@ -723,7 +723,49 @@ button.tab-btn.active{
       <button class="btn btn-red" onclick="addSale()" style="width:100%">&#x1F525; הוסף מבצע</button>
       <div style="margin-top:12px" id="sales-list"></div>
       <div class="sep"></div>
-      <div class="sec-title">הוסף פריט חדש</div>
+      <div class="sec-title">🎁 מבצע פאה שנייה</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">ההנחה תחול אוטומטית על הזולה מבין שתי הפאות בעגלה.</p>
+      <div class="field"><label>סוג מבצע</label>
+        <select id="deal2-type" onchange="toggleDeal2Fields()">
+          <option value="none">ללא מבצע</option>
+          <option value="pct">פאה שנייה באחוזים</option>
+          <option value="fixed">פאה שנייה בסכום קבוע</option>
+        </select>
+      </div>
+      <div id="deal2-pct-fields" style="display:none">
+        <div class="g2">
+          <div class="field"><label>אחוז הנחה</label>
+            <select id="deal2-pct">
+              <option value="5">5%</option>
+              <option value="10">10%</option>
+              <option value="15">15%</option>
+              <option value="20">20%</option>
+            </select>
+          </div>
+          <div class="field"><label>תקרת הנחה ₪ (אופציונלי)</label>
+            <select id="deal2-cap">
+              <option value="">ללא תקרה</option>
+              <option value="500">500 ₪</option>
+              <option value="700">700 ₪</option>
+              <option value="1000">1000 ₪</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="deal2-fixed-fields" style="display:none">
+        <div class="field"><label>סכום הנחה ₪</label>
+          <select id="deal2-fixed-preset" onchange="toggleDeal2FixedCustom()">
+            <option value="300">300 ₪</option>
+            <option value="500">500 ₪</option>
+            <option value="700">700 ₪</option>
+            <option value="custom">סכום חופשי</option>
+          </select>
+          <input type="number" id="deal2-fixed-custom" placeholder="הזן סכום" min="0" style="display:none;margin-top:6px;width:100%;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:14px">
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="saveDeal2()" style="width:100%">💾 שמור מבצע</button>
+      <div id="deal2-preview" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+      <div class="sep"></div>
       <div class="g2">
         <div class="field"><label>קטגוריה</label><select id="new-cat"><option value="silk">פאת סקין</option><option value="lace-natural">פאת לייס טופ — צבע טבעי</option><option value="lace-blonde">פאת לייס טופ — בלונד</option><option value="lace-light">פאת לייס טופ — בלונד בהיר</option><option value="bandfall">פאת סרט</option></select></div>
         <div class="field"><label>עמודה</label><select id="new-col"><option value="col1">עמודה ראשונה</option><option value="col2">עמודה שנייה</option></select></div>
@@ -877,6 +919,20 @@ button.tab-btn.active{
     </div>
 
     <div class="success-pay-band">
+      <!-- אפשרות עגלה -->
+      <div id="cart-choice-band" style="margin-bottom:14px;padding:16px;background:rgba(255,255,255,0.1);border-radius:14px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px;text-align:center">מה תרצי לעשות?</div>
+        <div style="display:grid;gap:10px">
+          <button onclick="addCurrentOrderToCart()" style="background:#f59e0b;color:#fff;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;width:100%;line-height:1.4">
+            🛒 הוסף לעגלה<br><span style="font-size:12px;font-weight:400;opacity:0.9">והמשיכי לבחור פאה נוספת</span>
+          </button>
+          <button onclick="hideCartChoice()" style="background:#2563eb;color:#fff;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;width:100%;line-height:1.4">
+            💳 שלם עכשיו<br><span style="font-size:12px;font-weight:400;opacity:0.9">עבור לאפשרויות תשלום</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="payment-band" style="display:none">
       <div class="success-pay-title" id="success-pay-title">✨ נשאר רק לשלם</div>
       <!-- כפתורי בחירת אמצעי תשלום -->
       <div id="pay-methods-screen">
@@ -980,8 +1036,9 @@ button.tab-btn.active{
           <button class="btn" onclick="backToPayMethods()" style="flex:1">← חזרה</button>
           <button class="btn" onclick="saveCustomPayments()" style="flex:1;background:#22c55e;color:#fff;border-color:#22c55e">💾 שמור תשלומים</button>
         </div>
-      </div>
-    </div>
+      </div><!-- /pay-custom-screen -->
+    </div><!-- /payment-band -->
+    </div><!-- /success-pay-band -->
 
     <button class="success-close-btn" onclick="closeOrderSuccess()">סגור</button>
     <button class="success-close-btn" id="finish-client-btn" onclick="finishClientSession()">סיום תהליך וחזרה ללקוחה חדשה</button>
@@ -990,6 +1047,39 @@ button.tab-btn.active{
 
 <div id="reminders-container" style="display:none;position:fixed;bottom:80px;left:0;right:0;padding:10px;z-index:300;pointer-events:none">
   <div style="pointer-events:all;max-width:480px;margin:0 auto"></div>
+</div>
+
+<!-- סרגל עגלה -->
+<div id="cart-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:350;background:var(--accent);color:#fff;padding:12px 16px;direction:rtl">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:480px;margin:0 auto">
+    <div onclick="openCartPanel()" style="flex:1;cursor:pointer">
+      <span style="font-size:14px;font-weight:700">🛒 עגלה (<span id="cart-count">0</span>) · <span id="cart-bar-total">₪0</span></span>
+      <span style="font-size:11px;opacity:0.8;display:block">לחץ לפרטים</span>
+    </div>
+    <button onclick="checkoutCart()" style="background:#fff;color:var(--accent);border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0">💳 שלם עכשיו</button>
+  </div>
+</div>
+
+<!-- פאנל עגלה -->
+<div id="cart-panel" style="display:none;position:fixed;inset:0;z-index:360;background:rgba(0,0,0,0.7)" onclick="closeCartPanel()">
+  <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;direction:rtl">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:16px;font-weight:800;margin:0">🛒 העגלה שלך</h3>
+      <button onclick="closeCartPanel()" style="border:none;background:none;font-size:22px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="cart-items-list" style="margin-bottom:14px"></div>
+    <div id="cart-discount-row" style="display:none;padding:10px;background:var(--bg);border-radius:10px;margin-bottom:10px;font-size:14px;color:#22c55e;font-weight:700"></div>
+    <div style="border-top:2px solid var(--border);padding-top:12px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800">
+        <span>סה"כ לתשלום:</span>
+        <span id="cart-total-display">₪0</span>
+      </div>
+    </div>
+    <div style="display:grid;gap:8px">
+      <button class="btn btn-blue" onclick="checkoutCart()" style="width:100%;font-size:15px;padding:14px">✅ המשך לתשלום</button>
+      <button class="btn" onclick="clearCart()" style="width:100%;font-size:13px;color:#ef4444;border-color:#ef4444">🗑 בטל עגלה</button>
+    </div>
+  </div>
 </div>
 
 <div id="saved-toast"></div>
@@ -3289,6 +3379,7 @@ function switchAdminTab(tab) {
   if (tab==='customers') renderAdminCustomers();
   if (tab==='gallery') renderGalAdminList();
   if (tab==='settings') { loadBankAccount(); }
+  if (tab==='price') { setTimeout(initDeal2Admin, 100); }
 }
 
 function applyFontSize(val, fromNum) {
@@ -3650,6 +3741,11 @@ function showOrderSuccess(){
     if(ts) ts.classList.remove('open');
     var lb=document.getElementById('lightbox');
     if(lb) lb.classList.remove('open');
+
+    var cartBand = document.getElementById('cart-choice-band');
+    var payBand = document.getElementById('payment-band');
+    if(cartBand) cartBand.style.display = 'block';
+    if(payBand) payBand.style.display = 'none';
 
     // init תשלומים
     currentSuccessOrder = orders[0] || null;
@@ -4485,7 +4581,232 @@ function applyBabyHairCharge() {
   priceEl.value = localVal ? base + 500 : base;
 }
 
-// ── מערכת תשלומים ──
+function addCurrentOrderToCart() {
+  if (!currentSuccessOrder) return;
+  cartItems.push({
+    id: currentSuccessOrder.id || Date.now(),
+    wigName: currentSuccessOrder.wig || 'פאה',
+    price: currentSuccessOrder.price || 0,
+    col: currentSuccessOrder.col || '',
+    snapshot: currentSuccessOrder
+  });
+  updateCartBar();
+  closeOrderSuccess();
+  toast('🛒 הפאה נוספה לעגלה! בחרי פאה נוספת');
+}
+
+function hideCartChoice() {
+  var cartBand = document.getElementById('cart-choice-band');
+  var payBand = document.getElementById('payment-band');
+  if(cartBand) cartBand.style.display = 'none';
+  if(payBand) payBand.style.display = 'block';
+}
+
+function addToCart() {
+  if (!currentSuccessOrder) return;
+  addCurrentOrderToCart();
+}
+
+
+var cartItems = []; // [{wigName, price, wigDetails, pendingOrderSnapshot}]
+
+function addToCart() {
+  var o = collectOrderData();
+  if (!o || !o.price) { toast('נא למלא פרטי פאה'); return; }
+  cartItems.push({
+    id: Date.now(),
+    wigName: o.wig || o.wigDetails.wigType || 'פאה',
+    price: o.price,
+    col: o.col || '',
+    snapshot: o
+  });
+  updateCartBar();
+  closeOrderModal();
+  toast('🛒 הפאה נוספה לעגלה!');
+}
+
+function updateCartBar() {
+  var bar = document.getElementById('cart-bar');
+  var countEl = document.getElementById('cart-count');
+  var totalEl = document.getElementById('cart-bar-total');
+  if (!bar) return;
+  if (cartItems.length === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'block';
+  if (countEl) countEl.textContent = cartItems.length;
+  var total = calcCartTotal();
+  if (totalEl) totalEl.textContent = '₪' + total.final.toLocaleString('he-IL');
+}
+
+function calcCartTotal() {
+  if (cartItems.length === 0) return { sum: 0, discount: 0, final: 0 };
+  var prices = cartItems.map(function(i){ return i.price; });
+  var sum = prices.reduce(function(a,b){ return a+b; }, 0);
+  var deal = loadDeal2();
+  var discount = 0;
+  if (deal && deal.type !== 'none' && cartItems.length >= 2) {
+    var minPrice = Math.min.apply(null, prices);
+    if (deal.type === 'pct') {
+      discount = Math.round(minPrice * (deal.pct / 100));
+      if (deal.cap) discount = Math.min(discount, deal.cap);
+    } else if (deal.type === 'fixed') {
+      discount = deal.amount;
+    }
+  }
+  return { sum: sum, discount: discount, final: sum - discount };
+}
+
+function openCartPanel() {
+  renderCartPanel();
+  document.getElementById('cart-panel').style.display = 'block';
+}
+
+function closeCartPanel() {
+  document.getElementById('cart-panel').style.display = 'none';
+}
+
+function renderCartPanel() {
+  var list = document.getElementById('cart-items-list');
+  var discRow = document.getElementById('cart-discount-row');
+  var totalEl = document.getElementById('cart-total-display');
+  if (!list) return;
+  list.innerHTML = cartItems.map(function(item, i){
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">' +
+      '<div><div style="font-weight:700;font-size:14px">פאה ' + (i+1) + ' — ' + esc(item.wigName) + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + esc(item.col||'') + '</div></div>' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="font-weight:700">₪' + item.price.toLocaleString('he-IL') + '</span>' +
+        '<button onclick="removeFromCart('+i+')" style="border:none;background:none;color:#ef4444;cursor:pointer;font-size:16px">✕</button>' +
+      '</div></div>';
+  }).join('');
+  var totals = calcCartTotal();
+  if (totals.discount > 0 && discRow) {
+    discRow.style.display = 'block';
+    discRow.innerHTML = '🎁 מבצע פאה שנייה: הנחה של ₪' + totals.discount.toLocaleString('he-IL');
+  } else if (discRow) {
+    discRow.style.display = 'none';
+  }
+  if (totalEl) totalEl.textContent = '₪' + totals.final.toLocaleString('he-IL');
+}
+
+function removeFromCart(i) {
+  cartItems.splice(i, 1);
+  updateCartBar();
+  renderCartPanel();
+  if (cartItems.length === 0) closeCartPanel();
+}
+
+function clearCart() {
+  cartItems = [];
+  updateCartBar();
+  closeCartPanel();
+}
+
+function checkoutCart() {
+  if (cartItems.length === 0) return;
+  closeCartPanel();
+  var totals = calcCartTotal();
+  // בנה הזמנה מאוחדת
+  var mainSnap = cartItems[0].snapshot || {};
+  currentSuccessOrder = Object.assign({}, mainSnap, {
+    id: Date.now(),
+    price: totals.final,
+    cartItems: cartItems.map(function(ci){ return {wigName:ci.wigName, price:ci.price}; }),
+    cartDiscount: totals.discount,
+    createdAt: new Date().toLocaleString('he-IL')
+  });
+  currentPayOrderId = currentSuccessOrder.id;
+  customPayments = [];
+  // פתח מסך תשלום ישירות
+  var modal = document.getElementById('order-success-modal');
+  if(modal) modal.classList.add('open');
+  // הצג ישר את מסך התשלום
+  var cartBand = document.getElementById('cart-choice-band');
+  var payBand = document.getElementById('payment-band');
+  if(cartBand) cartBand.style.display = 'none';
+  if(payBand) payBand.style.display = 'block';
+  backToPayMethods();
+  // עדכן סכום
+  var priceEl = document.getElementById('success-price-display');
+  if(priceEl) priceEl.textContent = '₪' + totals.final.toLocaleString('he-IL');
+  // נקה עגלה
+  cartItems = [];
+  updateCartBar();
+}
+
+// ── מבצע פאה שנייה ──
+function loadDeal2() {
+  try {
+    var s = localStorage.getItem(STORE_KEY + '_deal2');
+    return s ? JSON.parse(s) : { type: 'none' };
+  } catch(e) { return { type: 'none' }; }
+}
+
+function saveDeal2() {
+  var type = document.getElementById('deal2-type').value;
+  var deal = { type: type };
+  if (type === 'pct') {
+    deal.pct = parseInt(document.getElementById('deal2-pct').value) || 10;
+    var cap = document.getElementById('deal2-cap').value;
+    deal.cap = cap ? parseInt(cap) : null;
+  } else if (type === 'fixed') {
+    var preset = document.getElementById('deal2-fixed-preset').value;
+    deal.amount = preset === 'custom'
+      ? (parseInt(document.getElementById('deal2-fixed-custom').value) || 0)
+      : parseInt(preset);
+  }
+  localStorage.setItem(STORE_KEY + '_deal2', JSON.stringify(deal));
+  renderDeal2Preview();
+  toast('מבצע נשמר!');
+}
+
+function toggleDeal2Fields() {
+  var type = document.getElementById('deal2-type').value;
+  document.getElementById('deal2-pct-fields').style.display = type === 'pct' ? 'block' : 'none';
+  document.getElementById('deal2-fixed-fields').style.display = type === 'fixed' ? 'block' : 'none';
+}
+
+function toggleDeal2FixedCustom() {
+  var preset = document.getElementById('deal2-fixed-preset').value;
+  document.getElementById('deal2-fixed-custom').style.display = preset === 'custom' ? 'block' : 'none';
+}
+
+function renderDeal2Preview() {
+  var deal = loadDeal2();
+  var el = document.getElementById('deal2-preview');
+  if (!el) return;
+  if (!deal || deal.type === 'none') { el.textContent = 'אין מבצע פעיל'; return; }
+  if (deal.type === 'pct') {
+    el.textContent = '✅ מבצע פעיל: פאה שנייה ב-' + deal.pct + '%' + (deal.cap ? ' (תקרה ₪' + deal.cap + ')' : ' ללא תקרה');
+  } else {
+    el.textContent = '✅ מבצע פעיל: פאה שנייה ב-₪' + deal.amount + ' הנחה';
+  }
+}
+
+function initDeal2Admin() {
+  var deal = loadDeal2();
+  if (!deal || deal.type === 'none') return;
+  document.getElementById('deal2-type').value = deal.type;
+  toggleDeal2Fields();
+  if (deal.type === 'pct') {
+    document.getElementById('deal2-pct').value = deal.pct;
+    document.getElementById('deal2-cap').value = deal.cap || '';
+  } else if (deal.type === 'fixed') {
+    var presets = ['300','500','700'];
+    if (presets.includes(String(deal.amount))) {
+      document.getElementById('deal2-fixed-preset').value = deal.amount;
+    } else {
+      document.getElementById('deal2-fixed-preset').value = 'custom';
+      document.getElementById('deal2-fixed-custom').value = deal.amount;
+      document.getElementById('deal2-fixed-custom').style.display = 'block';
+    }
+  }
+  renderDeal2Preview();
+}
+
+
 var currentPayOrderId = null;
 var customPayments = [];
 var currentSuccessOrder = null;
@@ -5064,26 +5385,21 @@ function loadBankAccount() {
 function updateDensityOptions(wigType) {
   var sel = document.getElementById('wig-density');
   if (!sel) return;
-  var currentVal = sel.value;
   sel.innerHTML = '<option value="">בחרי</option>';
   if (wigType === 'silk top') {
-    // פאת סקין — 130% בלבד
-    sel.innerHTML += '<option value="130">130% (סטנדרט)</option>';
-    sel.value = '130';
+    // פאת סקין — 130% בלבד, קבוע
+    sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
   } else if (wigType === 'lace top') {
-    // פאת לייס טופ — 110% ברירת מחדל, 130% אפשרות
-    sel.innerHTML += '<option value="110" selected>110% (סטנדרט)</option>';
-    sel.innerHTML += '<option value="130">130% (+₪170)</option>';
-    sel.value = currentVal === '130' ? '130' : '110';
+    // פאת לייס טופ — 130% ברירת מחדל, 110% עם הנחה
+    sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
+    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
   } else if (wigType === 'band fall') {
     // פאת סרט — שניהם
-    sel.innerHTML += '<option value="110">110%</option>';
-    sel.innerHTML += '<option value="130">130%</option>';
-    sel.value = currentVal || '';
+    sel.innerHTML += '<option value="130" selected>130%</option>';
+    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
   } else {
-    // ברירת מחדל
-    sel.innerHTML += '<option value="110">110% (סטנדרט)</option>';
-    sel.innerHTML += '<option value="130">130% (+₪170)</option>';
+    sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
+    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
   }
   applyDensityDiscount();
 }
@@ -5096,15 +5412,12 @@ function applyDensityDiscount() {
   pendingOrder.originalPrice = basePrice;
   var noteEl = document.getElementById('density-note');
   var wigType = (document.getElementById('wig-type')||{}).value || '';
-  if (density.value === '130' && wigType === 'lace top') {
-    // לייס טופ — 130% הוא תוספת של 170 מעל ה-110%
-    priceEl.value = basePrice + 170;
-    if (noteEl) noteEl.textContent = 'תוספת 130%: +₪170';
-  } else if (density.value === '110' || density.value === '130') {
-    // 110% = מחיר בסיס | סקין/סרט 130% = מחיר בסיס
-    priceEl.value = basePrice;
-    if (noteEl) noteEl.textContent = '';
+  if (density.value === '110' && wigType === 'lace top') {
+    // לייס טופ 110% = מחיר בסיס (130%) פחות ₪170
+    priceEl.value = Math.max(0, basePrice - 170);
+    if (noteEl) noteEl.textContent = '110% — הנחה: ₪170';
   } else {
+    // 130% = מחיר בסיס (ברירת מחדל לכולם)
     priceEl.value = basePrice;
     if (noteEl) noteEl.textContent = '';
   }
