@@ -1542,8 +1542,23 @@ function toast(msg) {
 // ── גלריה ──
 const TYPE_CATS   = ['הכל','פאת סקין','פאת לייס טופ','פאת סרט'];
 const COLOR_CATS  = ['הכל','שחור','חום','בלונד','בלונד בהיר'];
-const STYLE_CATS  = ['הכל','חלק','גל תחתון','גל עליון','תלתלים'];
+const STYLE_CATS  = ['הכל','חלק','גל עדין','גל קל','גל קל מאוד','גל תחתון','גל תחתון קל מאוד','גל קל מהלסת','גל חזק','תלתלים'];
 const LENGTH_CATS = ['הכל','10"','12"','14"','16"','18"','20"','22"','24"','26"','28"','30"'];
+
+// מיפוי אנגלית לעברית עבור סגנון תלתול
+function hairStyleToHeb(hair) {
+  if (!hair) return '';
+  var h = hair.toLowerCase().trim();
+  if (h === 'straight')                  return 'חלק';
+  if (h === 'curly')                     return 'תלתלים';
+  if (h === 'stronger wave')             return 'גל חזק';
+  if (h === 'slight wave')              return 'גל קל';
+  if (h === 'very slight wave')         return 'גל קל מאוד';
+  if (h === 'bottom wave')              return 'גל תחתון';
+  if (h === 'bottom very slight wave')  return 'גל תחתון קל מאוד';
+  if (h === 'slight wave from the jaw') return 'גל קל מהלסת';
+  return hair;
+}
 // ── IndexedDB לגלריה ──
 var IDB_NAME = 'mirchoron_gal_db';
 var IDB_STORE = 'photos';
@@ -1756,12 +1771,36 @@ function renderGallery() {
   }
 
   var filtered = galPhotos.filter(function(p) {
-    if (!p.type && !p.color && !p.style) return true;
-    var okType   = activeType==='הכל'   || p.type===activeType;
-    var okColor  = activeColor==='הכל'  || p.color===activeColor;
-    var okStyle  = activeStyle==='הכל'  || p.style===activeStyle;
-    var okLength = activeLength==='הכל' || !p.length || p.length===activeLength;
-    return okType && okColor && okStyle && okLength;
+    // תמיכה בשדות ישנים (color, style) וחדשים (baseColor, hair, highlightColor)
+    var pType = p.type || '';
+    // נרמל סוג פאה
+    var typeMatch = activeType === 'הכל';
+    if (!typeMatch) {
+      var t = pType.toLowerCase();
+      if (activeType === 'silk top' || activeType === 'פאת סקין')
+        typeMatch = t.includes('silk') || t.includes('סקין');
+      else if (activeType === 'lace top' || activeType === 'פאת לייס')
+        typeMatch = t.includes('lace') || t.includes('לייס');
+      else if (activeType === 'band fall' || activeType === 'פאת סרט')
+        typeMatch = t.includes('band') || t.includes('סרט');
+      else
+        typeMatch = pType === activeType;
+    }
+    // צבע — תמיכה בשדות ישנים וחדשים
+    var colorMatch = activeColor === 'הכל';
+    if (!colorMatch) {
+      colorMatch = (p.color === activeColor) ||
+                   (p.baseColor && p.baseColor.includes(activeColor)) ||
+                   (p.paintedBaseColor && p.paintedBaseColor.includes(activeColor));
+    }
+    // סגנון — המר לעברית לפני השוואה
+    var styleMatch = activeStyle === 'הכל';
+    if (!styleMatch) {
+      var pStyleHeb = hairStyleToHeb(p.hair || p.style || '');
+      styleMatch = pStyleHeb === activeStyle;
+    }
+    var lengthMatch = activeLength === 'הכל' || !p.length || p.length === activeLength;
+    return typeMatch && colorMatch && styleMatch && lengthMatch;
   });
 
   var groups = {};
@@ -2020,11 +2059,12 @@ function addGalPhoto() {
   if (!name) { toast('נא למלא שם לפאה'); return; }
   if (!files||files.length===0) { toast('נא לבחור תמונה'); return; }
   var groupId = Date.now() + '_' + Math.random().toString(36).slice(2,7);
-  var total = files.length;
+  // סנן תמונות שנמחקו מהתצוגה המקדימה
+  var previewUrls = (window._galPreviewUrls || []).filter(function(u){ return !!u; });
+  if(previewUrls.length === 0 && (!files || files.length === 0)) { toast('נא לבחור תמונה'); return; }
+  var total = previewUrls.length || files.length;
   var loaded = 0;
-  var previewUrls = window._galPreviewUrls || [];
-  Array.from(files).forEach(function(file, fileIdx) {
-    var editedUrl = previewUrls[fileIdx];
+  previewUrls.forEach(function(editedUrl, fileIdx) {
     function processUrl(dataUrl) {
       compressImage(dataUrl, function(compressed) {
         galPhotos.push({name,type,length,structure,cap,hair,baseColor,paintedBaseColor,highlightColor,highlightStyle,highlightPct,part,url:compressed,groupId});
@@ -2041,13 +2081,7 @@ function addGalPhoto() {
         }
       });
     }
-    if (editedUrl) {
-      processUrl(editedUrl);
-    } else {
-      var reader = new FileReader();
-      reader.onload = function(e) { processUrl(e.target.result); };
-      reader.readAsDataURL(file);
-    }
+    processUrl(editedUrl);
   });
 }
 
@@ -4255,8 +4289,27 @@ function showGalPreview(input) {
       editBtn.title = 'ערוך תמונה';
       editBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(37,99,235,0.85);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:13px;cursor:pointer;line-height:1';
       editBtn.onclick = (function(idx){ return function(e){ e.stopPropagation(); openPreviewEditor(idx); }; })(i);
+      // כפתור מחיקה
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.innerHTML = '✕';
+      delBtn.title = 'הסר תמונה';
+      delBtn.style.cssText = 'position:absolute;top:4px;left:4px;background:rgba(220,38,38,0.85);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer;line-height:1;font-weight:700';
+      delBtn.onclick = (function(idx){ return function(e){
+        e.stopPropagation();
+        window._galPreviewUrls[idx] = null;
+        var w = document.getElementById('gal-prev-wrap-'+idx);
+        if(w) w.style.display = 'none';
+        // אם כולן מחוקות — הסתר אזור
+        var allNull = window._galPreviewUrls.every(function(u){ return !u; });
+        if(allNull) {
+          document.getElementById('gal-preview-area').style.display = 'none';
+          document.getElementById('gal-file').value = '';
+        }
+      }; })(i);
       wrap.appendChild(img);
       wrap.appendChild(editBtn);
+      wrap.appendChild(delBtn);
       grid.appendChild(wrap);
     };
     reader.readAsDataURL(file);
