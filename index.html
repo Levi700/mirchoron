@@ -240,6 +240,13 @@ button.tab-btn.active{
 .tab-btn.active{background:var(--text) !important;color:var(--card) !important;border:2px solid var(--text) !important}
 
 
+
+/* ספירת פאות בניהול הגלריה */
+.gallery-count-box{background:var(--accent-bg);border:1px solid var(--accent);border-radius:14px;padding:12px 14px;margin:0 0 12px;text-align:center}
+.gallery-count-num{font-size:30px;font-weight:900;line-height:1;color:var(--accent)}
+.gallery-count-label{font-size:12px;color:var(--muted);font-weight:700;margin-top:5px}
+.gallery-count-note{font-size:11px;color:var(--hint);margin-top:4px}
+
 /* ── עורך תמונה ── */
 #img-editor-modal{display:none;position:fixed;inset:0;z-index:700;background:var(--card);overflow-y:auto;padding:0}
 #img-editor-modal.open{display:flex;align-items:flex-start;justify-content:center}
@@ -749,7 +756,12 @@ button.tab-btn.active{
       <!-- ── טאב גלריה ── -->
       <div id="admin-gallery" style="display:none">
         <div class="sec-title">ניהול גלריה</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">לפאה עם כמה תמונות — השתמש באותו שם בדיוק.</p>
+        <div class="gallery-count-box" aria-live="polite">
+          <div class="gallery-count-num" id="gal-wig-count">0</div>
+          <div class="gallery-count-label">פאות בגלריה</div>
+          <div class="gallery-count-note" id="gal-photo-count">0 תמונות בסך הכול</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">כל העלאה חדשה נשמרת כפאה נפרדת. אפשר לבחור כמה תמונות יחד לאותה פאה.</p>
         <div class="field"><label>שם הפאה</label><input type="text" id="gal-name" placeholder='למשל: פאה בלונד גלי 16"'></div>
         <div class="g2">
           <div class="field"><label>סוג פאה</label><select id="gal-type"><option value="">בחרי</option><option value="silk top">פאת סקין</option><option value="lace top">פאת טופ לייס</option><option value="band fall">פאת סרט</option></select></div>
@@ -2112,7 +2124,7 @@ function addGalPhoto() {
           document.getElementById('gal-preview-area').style.display='none';
           document.getElementById('gal-preview-grid').innerHTML='';
           window._galPreviewUrls = [];
-          toast(loaded + ' תמונות נוספו');
+          toast('נוספה פאה לגלריה · עכשיו יש ' + getGalGroupCount().toLocaleString('he-IL') + ' פאות');
         }
       });
     }
@@ -2133,10 +2145,27 @@ function deleteGalGroup(groupId) {
   saveGal();
   renderGallery();
   renderGalAdminList();
-  toast('הפאה נמחקה');
+  toast('הפאה נמחקה · נשארו ' + getGalGroupCount().toLocaleString('he-IL') + ' פאות');
+}
+
+function getGalGroupCount() {
+  var seen = {};
+  galPhotos.forEach(function(p, i){ seen[galGroupKey(p, i)] = true; });
+  return Object.keys(seen).length;
+}
+
+function updateGalCounts() {
+  var wigEl = document.getElementById('gal-wig-count');
+  var photoEl = document.getElementById('gal-photo-count');
+  if (wigEl) wigEl.textContent = getGalGroupCount().toLocaleString('he-IL');
+  if (photoEl) {
+    var photos = galPhotos.length;
+    photoEl.textContent = photos.toLocaleString('he-IL') + ' תמונות בסך הכול';
+  }
 }
 
 function renderGalAdminList() {
+  updateGalCounts();
   var el = document.getElementById('gal-admin-list');
   if (!el) return;
   if (galPhotos.length===0) { el.innerHTML='<p style="font-size:13px;color:var(--hint);padding:8px 0">אין תמונות עדיין</p>'; return; }
@@ -3255,6 +3284,7 @@ function switchAdminTab(tab) {
     if (el) el.className = 'admin-tab' + (tab===t ? ' active' : '');
   });
   if (tab==='customers') renderAdminCustomers();
+  if (tab==='gallery') renderGalAdminList();
   if (tab==='settings') { loadBankAccount(); }
 }
 
