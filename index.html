@@ -925,6 +925,9 @@ button.tab-btn.active{
           <button class="btn btn-blue" onclick="confirmStandingOrder()" style="width:100%;margin-top:10px">✅ אשר פריסה זו</button>
         </div>
 
+        <!-- פרטי חשבון להעברה — נמשך אוטומטית מהניהול -->
+        <div id="standing-account-box" style="display:none;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;line-height:1.7"></div>
+
         <!-- מדריך בנקים -->
         <p style="font-size:13px;color:var(--muted);margin-bottom:8px">בחרי בנק לקבלת הוראות:</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="bank-buttons"></div>
@@ -4487,6 +4490,50 @@ var currentPayOrderId = null;
 var customPayments = [];
 var currentSuccessOrder = null;
 
+function getBankAccount() {
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY+'_bank_acct') || '{}') || {};
+  } catch(e) { return {}; }
+}
+
+function hasBankAccount(acct) {
+  acct = acct || getBankAccount();
+  return !!(acct.bank || acct.bankNum || acct.branch || acct.number || acct.name);
+}
+
+function formatBankAccountText() {
+  var acct = getBankAccount();
+  if(!hasBankAccount(acct)) return '';
+  var parts = [];
+  if(acct.name) parts.push('שם: '+acct.name);
+  if(acct.bank) parts.push('בנק: '+acct.bank+(acct.bankNum ? ' ('+acct.bankNum+')' : ''));
+  else if(acct.bankNum) parts.push('מספר בנק: '+acct.bankNum);
+  if(acct.branch) parts.push('סניף: '+acct.branch);
+  if(acct.number) parts.push('חשבון: '+acct.number);
+  return parts.join(' | ');
+}
+
+function renderStandingAccountBox() {
+  var box = document.getElementById('standing-account-box');
+  if(!box) return;
+  var acctText = formatBankAccountText();
+  if(!acctText) {
+    box.style.display = 'block';
+    box.innerHTML = '<b>📋 לאן להעביר?</b><br><span style="color:var(--muted)">עדיין לא הוזנו פרטי חשבון בניהול &gt; הגדרות.</span>';
+    return;
+  }
+  box.style.display = 'block';
+  box.innerHTML = '<b>📋 לאן להעביר / להקים הוראת קבע?</b><br>'+acctText;
+}
+
+function withAccountDetails(guideText) {
+  var acctText = formatBankAccountText();
+  var accountBlock = acctText
+    ? '📋 פרטי חשבון להעברה:\n' + acctText
+    : '📋 פרטי חשבון להעברה:\nלא הוזנו פרטי חשבון בניהול > הגדרות';
+  return accountBlock + '\n\n' + String(guideText || '').replace(/^📋 פרטי חשבון להעברה:\n[^\n]*(\n\n)?/, '');
+}
+
 var bankGuides = {
   "דיסקונט": `📋 פרטי חשבון להעברה:
 שם: רחל קשי | בנק דיסקונט | סניף: 153 | חשבון: 252963948
@@ -4607,7 +4654,7 @@ function openPayScreen(type) {
   });
   var target = document.getElementById('pay-'+type+'-screen');
   if(target) target.style.display = 'block';
-  if(type === 'standing') { renderBankButtons(); calcStandingOnOpen(); }
+  if(type === 'standing') { renderStandingAccountBox(); renderBankButtons(); calcStandingOnOpen(); }
   if(type === 'custom') initCustomPayScreen();
 }
 
@@ -4630,7 +4677,7 @@ function renderBankButtons() {
 function showBankGuide(bank) {
   var guide = document.getElementById('bank-guide');
   var actions = document.getElementById('bank-guide-actions');
-  if(guide){ guide.style.display='block'; guide.textContent = bankGuides[bank]||''; }
+  if(guide){ guide.style.display='block'; guide.textContent = withAccountDetails(bankGuides[bank]||''); }
   if(actions){ actions.style.display='grid'; }
 }
 
@@ -4972,7 +5019,8 @@ function calcStanding() {
     '<div>נשאר: <b>'+remaining.toLocaleString('he-IL')+' ₪</b></div>' +
     '<div>'+count+' תשלומים × <b>'+perMonth.toLocaleString('he-IL')+' ₪</b> לחודש</div>' +
     '<div>ב-'+day+' לכל חודש</div>' +
-    '<div style="font-size:11px;color:var(--muted);margin-top:4px">תאריכים: '+dates.join(', ')+(count>6?' ...':'')+'</div>';
+    '<div style="font-size:11px;color:var(--muted);margin-top:4px">תאריכים: '+dates.join(', ')+(count>6?' ...':'')+'</div>' +
+    (formatBankAccountText() ? '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><b>לאן להעביר:</b><br>'+formatBankAccountText()+'</div>' : '');
   calc.dataset.count = count;
   calc.dataset.perMonth = perMonth;
   calc.dataset.day = day;
@@ -4994,6 +5042,7 @@ function saveBankAccount() {
     name:   (document.getElementById('acct-name')     ||{}).value||''
   };
   localStorage.setItem(STORE_KEY+'_bank_acct', JSON.stringify(acct));
+  renderStandingAccountBox();
   toast('פרטי החשבון נשמרו');
 }
 
