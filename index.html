@@ -904,7 +904,7 @@ button.tab-btn.active{
 <div id="order-success-modal">
   <div id="order-success-box">
     <div class="success-heart-confetti"><span>🤍</span><span>✨</span><span>🩷</span><span>♡</span><span>💫</span></div>
-    <button class="modal-close-x" onclick="closeOrderSuccess()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:#fff;position:absolute;top:12px;left:12px;z-index:10">×</button>
+    <button class="modal-close-x" onclick="handleSuccessClose()" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:#fff;position:absolute;top:12px;left:12px;z-index:10">×</button>
 
     <div class="success-header-band">
       <span class="success-emoji">🎉</span>
@@ -933,6 +933,7 @@ button.tab-btn.active{
       </div>
 
       <div id="payment-band" style="display:none">
+      <button onclick="showCartChoice()" style="background:rgba(255,255,255,0.2);color:#fff;border:2px solid rgba(255,255,255,0.4);border-radius:10px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px;width:100%">← חזור לבחירה</button>
       <div class="success-pay-title" id="success-pay-title">✨ נשאר רק לשלם</div>
       <!-- כפתורי בחירת אמצעי תשלום -->
       <div id="pay-methods-screen">
@@ -1040,7 +1041,7 @@ button.tab-btn.active{
     </div><!-- /payment-band -->
     </div><!-- /success-pay-band -->
 
-    <button class="success-close-btn" onclick="closeOrderSuccess()">סגור</button>
+    <button class="success-close-btn" onclick="closeOrderSuccessKeepCart()">סגור</button>
     <button class="success-close-btn" id="finish-client-btn" onclick="finishClientSession()">סיום תהליך וחזרה ללקוחה חדשה</button>
   </div>
 </div>
@@ -1143,11 +1144,14 @@ function updateSuccessClientText(){
 function finishClientSession(){
   var doneName = clientNameClean();
   clearClientSession();
+  cartItems = []; // נקה עגלה בסיום
+  saveCart();
+  updateCartBar();
   closeOrderSuccess();
   if(doneName) toast('תודה ' + doneName + ' 🤍');
   setTimeout(openClientWelcome, 350);
 }
-document.addEventListener('DOMContentLoaded', function(){ updateClientUI(); });
+document.addEventListener('DOMContentLoaded', function(){ updateClientUI(); if (typeof updateCartBar === 'function') updateCartBar(); });
 
 
 
@@ -1171,6 +1175,27 @@ document.addEventListener('DOMContentLoaded', function(){ updateClientUI(); });
 
 const STORE_KEY = 'mirchoron_v3';
 let usdRate = null;
+
+/* עגלה - אתחול ושמירה */
+var cartItems = safeStorageGet(STORE_KEY + '_cart_items', []);
+if (!Array.isArray(cartItems)) cartItems = [];
+function saveCart(){ safeStorageSet(STORE_KEY + '_cart_items', cartItems); }
+function addOrderToCart(order){
+  if (!order) return false;
+  var id = order.id || Date.now();
+  var alreadyInCart = cartItems.some(function(ci){ return String(ci.id) === String(id); });
+  if (alreadyInCart) return false;
+  cartItems.push({
+    id: id,
+    wigName: order.wig || (order.wigDetails && order.wigDetails.wigType) || order.name || 'פאה',
+    price: Number(order.price || 0),
+    col: order.col || '',
+    snapshot: order
+  });
+  saveCart();
+  updateCartBar();
+  return true;
+}
 
 function defaultData() {
   return {
@@ -2500,6 +2525,28 @@ function openOrderModal(idx) {
 }
 
 function closeOrderModal() {
+  if (pendingOrder) {
+    try {
+      var o = collectOrderData();
+      if (o && o.price > 0) {
+        var alreadyInCart = cartItems.some(function(ci){
+          return ci.id === (pendingOrder.draftId || pendingOrder.id || -1);
+        });
+        if (!alreadyInCart) {
+          cartItems.push({
+            id: pendingOrder.draftId || Date.now(),
+            wigName: o.wig || (o.wigDetails && o.wigDetails.wigType) || 'פאה',
+            price: o.price,
+            col: o.col || '',
+            snapshot: o,
+            isDraft: true
+          });
+          updateCartBar();
+          toast('נשמר בעגלה אוטומטית');
+        }
+      }
+    } catch(e) {}
+  }
   document.getElementById('order-modal').classList.remove('open');
   pendingOrder = null;
   clearInspo();
@@ -3221,40 +3268,43 @@ function editDraftOrder(id) {
   }, 100);
 }
 
-async function saveOrder() {
+function saveOrder() {
   if (!pendingOrder) return;
   if (!validateCustomerStep()) return;
-  var termsOk = document.getElementById('ord-terms-ok');
-  if (termsOk && !termsOk.checked) { toast('צריך לסמן אישור תקנון'); return; }
-  if (!signatureHasInk) { toast('צריך חתימת לקוחה'); return; }
 
   var order = collectOrderData();
   order.id = Date.now();
   order.createdAt = new Date().toLocaleString('he-IL');
   order.status = 'נשמרה ונשלחה ליצרן';
-  order.manufacturerText = buildOrderText(order);
   order.manufacturerImage = '';
-  order.fullOrderText = buildFullCustomerOrderText(order);
-  order.signedTermsImage = buildSignedTermsImageForOrder(order);
-  order.archive = {
-    savedAt: order.createdAt,
-    hasSignature: !!order.signature,
-    hasSignedTermsImage: !!order.signedTermsImage,
-    manufacturerPrepared: true,
-    manufacturerSent: true
-  };
 
-  try {
-    var mImg = await buildManufacturerImageForOrderAsync(order);
-    if (mImg) order.manufacturerImage = mImg;
-  } catch(e) {}
+  try { order.manufacturerText = buildOrderText(order); } catch(e) { order.manufacturerText = ''; }
+  try { order.fullOrderText = buildFullCustomerOrderText(order); } catch(e) { order.fullOrderText = ''; }
+  try { order.signedTermsImage = buildSignedTermsImageForOrder(order); } catch(e) { order.signedTermsImage = ''; }
+  try { order.termsApproved = !!(document.getElementById('ord-terms-ok')||{}).checked; } catch(e) {}
+  order.archive = { savedAt: order.createdAt, manufacturerSent: true };
 
   orders.unshift(order);
-  saveOrders();
-  renderCRM();
+  try { saveOrders(); } catch(e) {}
+  try { renderCRM(); } catch(e) {}
 
-  await shareManufacturerPackageFromOrder(order);
-  try{ showOrderSuccess(); }catch(e){}
+  // הצג מסך הצלחה — תמיד
+  setTimeout(function(){
+    try { showOrderSuccess(); } catch(e) { alert('שגיאה: ' + e.message); }
+  }, 50);
+
+  // שלח ליצרן ברקע
+  setTimeout(function(){
+    try {
+      buildManufacturerImageForOrderAsync(order).then(function(mImg){
+        if(mImg) {
+          var idx = orders.findIndex(function(o){ return o.id === order.id; });
+          if(idx !== -1) { orders[idx].manufacturerImage = mImg; saveOrders(); }
+        }
+        shareManufacturerPackageFromOrder(order);
+      }).catch(function(){ shareManufacturerPackageFromOrder(order); });
+    } catch(e) { try { shareManufacturerPackageFromOrder(order); } catch(e2) {} }
+  }, 500);
 }
 
 
@@ -3752,6 +3802,9 @@ function showOrderSuccess(){
     currentPayOrderId = currentSuccessOrder ? currentSuccessOrder.id : null;
     customPayments = (currentSuccessOrder && currentSuccessOrder.payments) ? currentSuccessOrder.payments : [];
     backToPayMethods();
+
+    // לא מוסיפים לעגלה אוטומטית.
+    // הפאה תתווסף רק אם לוחצים בפועל על ״הוסף לעגלה״.
 
     // הצג מחיר בחלון הסיום
     var priceEl = document.getElementById('success-price-display');
@@ -4581,18 +4634,41 @@ function applyBabyHairCharge() {
   priceEl.value = localVal ? base + 500 : base;
 }
 
+function handleSuccessClose() {
+  var payBand = document.getElementById('payment-band');
+  if (payBand && payBand.style.display !== 'none') {
+    // אם במסך תשלום — חזור לבחירה
+    showCartChoice();
+  } else {
+    // אם בבחירה — סגור וחזור למחירון (עגלה נשמרת)
+    closeOrderSuccessKeepCart();
+  }
+}
+
+
+  // סוגר את מסך ההצלחה אבל שומר את העגלה
+function closeOrderSuccessKeepCart() {
+  try {
+    var modal = document.getElementById('order-success-modal');
+    if(modal) modal.classList.remove('open');
+    if(typeof showPage === 'function') showPage('price');
+    window.scrollTo({top:0, behavior:'smooth'});
+  } catch(e) { location.hash=''; }
+}
+
+function showCartChoice() {
+  var cartBand = document.getElementById('cart-choice-band');
+  var payBand = document.getElementById('payment-band');
+  if(cartBand) cartBand.style.display = 'block';
+  if(payBand) payBand.style.display = 'none';
+}
+
+
 function addCurrentOrderToCart() {
-  if (!currentSuccessOrder) return;
-  cartItems.push({
-    id: currentSuccessOrder.id || Date.now(),
-    wigName: currentSuccessOrder.wig || 'פאה',
-    price: currentSuccessOrder.price || 0,
-    col: currentSuccessOrder.col || '',
-    snapshot: currentSuccessOrder
-  });
-  updateCartBar();
-  closeOrderSuccess();
-  toast('🛒 הפאה נוספה לעגלה! בחרי פאה נוספת');
+  if (!currentSuccessOrder) { toast('אין פאה להוספה לעגלה'); return; }
+  var added = addOrderToCart(currentSuccessOrder);
+  closeOrderSuccessKeepCart();
+  toast(added ? '🛒 הפאה נוספה לעגלה — בחרי פאה נוספת!' : 'הפאה כבר נמצאת בעגלה');
 }
 
 function hideCartChoice() {
@@ -4607,23 +4683,6 @@ function addToCart() {
   addCurrentOrderToCart();
 }
 
-
-var cartItems = []; // [{wigName, price, wigDetails, pendingOrderSnapshot}]
-
-function addToCart() {
-  var o = collectOrderData();
-  if (!o || !o.price) { toast('נא למלא פרטי פאה'); return; }
-  cartItems.push({
-    id: Date.now(),
-    wigName: o.wig || o.wigDetails.wigType || 'פאה',
-    price: o.price,
-    col: o.col || '',
-    snapshot: o
-  });
-  updateCartBar();
-  closeOrderModal();
-  toast('🛒 הפאה נוספה לעגלה!');
-}
 
 function updateCartBar() {
   var bar = document.getElementById('cart-bar');
@@ -4654,8 +4713,10 @@ function calcCartTotal() {
     } else if (deal.type === 'fixed') {
       discount = deal.amount;
     }
+    discount = Math.min(discount || 0, minPrice);
   }
-  return { sum: sum, discount: discount, final: sum - discount };
+  var finalTotal = Math.max(0, sum - discount);
+  return { sum: sum, discount: discount, final: finalTotal };
 }
 
 function openCartPanel() {
@@ -4693,6 +4754,7 @@ function renderCartPanel() {
 
 function removeFromCart(i) {
   cartItems.splice(i, 1);
+  saveCart();
   updateCartBar();
   renderCartPanel();
   if (cartItems.length === 0) closeCartPanel();
@@ -4700,6 +4762,7 @@ function removeFromCart(i) {
 
 function clearCart() {
   cartItems = [];
+  saveCart();
   updateCartBar();
   closeCartPanel();
 }
@@ -4731,8 +4794,9 @@ function checkoutCart() {
   // עדכן סכום
   var priceEl = document.getElementById('success-price-display');
   if(priceEl) priceEl.textContent = '₪' + totals.final.toLocaleString('he-IL');
-  // נקה עגלה
+  // נקה עגלה רק אחרי שהעסקה הפכה להזמנה לתשלום
   cartItems = [];
+  saveCart();
   updateCartBar();
 }
 
@@ -5387,19 +5451,16 @@ function updateDensityOptions(wigType) {
   if (!sel) return;
   sel.innerHTML = '<option value="">בחרי</option>';
   if (wigType === 'silk top') {
-    // פאת סקין — 130% בלבד, קבוע
+    // פאת סקין — 130% סטנדרט, 110% עם הנחה $40
     sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
-  } else if (wigType === 'lace top') {
-    // פאת לייס טופ — 130% ברירת מחדל, 110% עם הנחה
-    sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
-    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
-  } else if (wigType === 'band fall') {
-    // פאת סרט — שניהם
+    sel.innerHTML += '<option value="110">110% (הנחה $40)</option>';
+  } else if (wigType === 'lace top' || wigType === 'band fall') {
+    // לייס טופ + סרט — שניהם אותו מחיר
     sel.innerHTML += '<option value="130" selected>130%</option>';
-    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
+    sel.innerHTML += '<option value="110">110% (אותו מחיר)</option>';
   } else {
-    sel.innerHTML += '<option value="130" selected>130% (סטנדרט)</option>';
-    sel.innerHTML += '<option value="110">110% (הנחה ₪170)</option>';
+    sel.innerHTML += '<option value="130" selected>130%</option>';
+    sel.innerHTML += '<option value="110">110%</option>';
   }
   applyDensityDiscount();
 }
@@ -5412,12 +5473,16 @@ function applyDensityDiscount() {
   pendingOrder.originalPrice = basePrice;
   var noteEl = document.getElementById('density-note');
   var wigType = (document.getElementById('wig-type')||{}).value || '';
-  if (density.value === '110' && wigType === 'lace top') {
-    // לייס טופ 110% = מחיר בסיס (130%) פחות ₪170
-    priceEl.value = Math.max(0, basePrice - 170);
-    if (noteEl) noteEl.textContent = '110% — הנחה: ₪170';
+
+  if (density.value === '110' && wigType === 'silk top') {
+    // פאת סקין בלבד — 110% = הנחה $40
+    var rate = usdRate || lastRate || 3.7;
+    var discount = Math.round(40 * rate);
+    priceEl.value = Math.max(0, basePrice - discount);
+    if (noteEl) noteEl.textContent = '110% — הנחה: ₪' + discount;
   } else {
-    // 130% = מחיר בסיס (ברירת מחדל לכולם)
+    // לייס טופ + סרט: 110% = אותו מחיר כמו 130%
+    // סקין 130%: מחיר בסיס
     priceEl.value = basePrice;
     if (noteEl) noteEl.textContent = '';
   }
