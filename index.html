@@ -3537,6 +3537,26 @@ function openCustomer(id) {
   var o = orders.find(function(x){ return x.id===id; });
   if (!o) return;
   var d = o.wigDetails || {};
+  function renderWigDetailsBlock(orderLike, idx){
+    var dd = (orderLike && orderLike.wigDetails) || {};
+    var title = idx ? ('פרטי פאה ' + idx) : 'פרטי פאה';
+    var wigTitle = (orderLike && (orderLike.wig || orderLike.wigName)) ? '<br><strong>'+esc(orderLike.wig || orderLike.wigName)+'</strong>' : '';
+    var colorLine = (orderLike && orderLike.col) ? '<br>'+esc(orderLike.col) : '';
+    var priceLine = (orderLike && orderLike.price) ? '<br><span style="font-weight:700;color:var(--accent)">₪'+Number(orderLike.price||0).toLocaleString('he-IL')+'</span>' : '';
+    return '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>'+title+':</b>'+wigTitle+colorLine+priceLine+'<br>מידת רשת: '+esc(dd.cap||'')+(dd.structure?'<br>מבנה: '+esc(dd.structure):'')+'<br>סוג תלתול: '+esc(dd.hair||'')+'<br>צבע בסיס: '+esc(dd.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(dd.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(dd.highlightColor||'')+'<br>סגנון גוונים: '+esc(dd.highlightStyle||'')+'<br>אחוז גוונים: '+esc(dd.highlightPct||'')+'<br>הערות לפאה: '+esc(dd.notes||'')+'</div>';
+  }
+  function renderAllWigDetails(){
+    if (o.cartItems && o.cartItems.length) {
+      return '<div style="display:flex;flex-direction:column;gap:10px">' + o.cartItems.map(function(ci, i){
+        var snap = ci.snapshot || {};
+        if (!snap.wig) snap.wig = ci.wigName || '';
+        if (!snap.col) snap.col = ci.col || '';
+        if (!snap.price) snap.price = ci.price || 0;
+        return renderWigDetailsBlock(snap, i+1);
+      }).join('') + '</div>';
+    }
+    return renderWigDetailsBlock(o, 0);
+  }
   if (!o.manufacturerText) o.manufacturerText = buildOrderText(o);
   if (!o.fullOrderText) o.fullOrderText = buildFullCustomerOrderText(o);
   document.getElementById('cust-title').textContent = o.name;
@@ -3559,7 +3579,7 @@ function openCustomer(id) {
     })() : '') +
     (o.rateUsed?'<div>&#x1F4B1; שער דולר: ₪'+o.rateUsed.toFixed(3)+'</div>':'')+
     '<div>&#x1F4C5; '+esc(o.createdAt||o.date||'')+'</div>'+
-    '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>פרטי פאה:</b><br>מידת רשת: '+esc(d.cap||'')+(d.structure?'<br>מבנה: '+esc(d.structure):'')+'<br>סוג תלתול: '+esc(d.hair||'')+'<br>צבע בסיס: '+esc(d.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(d.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(d.highlightColor||'')+'<br>סגנון גוונים: '+esc(d.highlightStyle||'')+'<br>אחוז גוונים: '+esc(d.highlightPct||'')+'<br>הערות לפאה: '+esc(d.notes||'')+'</div>'+
+    renderAllWigDetails()+
     '<div class="customer-docs"><h4>מסמכים והזמנות</h4><div class="doc-grid">'+
       '<button class="btn" onclick="openOrderForm('+id+')">צפייה בטופס מלא</button>'+ 
       '<button class="btn" onclick="openOrderSignedTermsPdf('+id+')">תקנון חתום / PDF</button>'+ 
@@ -4947,14 +4967,45 @@ function checkoutCart() {
   var totals = calcCartTotal();
   var mainSnap = cartItems[0].snapshot || {};
 
+  // פרטי לקוחה לעגלה מרובת פאות:
+  // לוקחים קודם את שם הלקוחה הפעילה, ואם אין — מהפאה הראשונה שבה השם נשמר.
+  function firstCartField(field){
+    for (var i=0; i<cartItems.length; i++) {
+      var snap = cartItems[i].snapshot || {};
+      if (snap && snap[field]) return snap[field];
+    }
+    return '';
+  }
+  var cartCustomerName = clientNameClean() || mainSnap.name || firstCartField('name') || '';
+  var cartCustomerPhone = mainSnap.phone || firstCartField('phone') || '';
+  var cartCustomerCity = mainSnap.city || firstCartField('city') || '';
+  var cartCustomerPay = mainSnap.pay || firstCartField('pay') || 'מזומן';
+
+  // ודא שכל פאה בתוך ההזמנה המאוחדת מקבלת את אותם פרטי לקוחה,
+  // כדי שבניהול יוצגו כל הפאות תחת אותה לקוחה ולא ייעלם שם הלקוחה.
+  var normalizedCartItems = cartItems.map(function(ci){
+    var snap = Object.assign({}, ci.snapshot || {});
+    snap.name = snap.name || cartCustomerName;
+    snap.phone = snap.phone || cartCustomerPhone;
+    snap.city = snap.city || cartCustomerCity;
+    snap.pay = snap.pay || cartCustomerPay;
+    return {wigName:ci.wigName, price:ci.price, col:ci.col||'', snapshot:snap};
+  });
+
   // בנה הזמנה מאוחדת עם כל הפאות מהעגלה
   currentSuccessOrder = Object.assign({}, mainSnap, {
     id: Date.now(),
+    name: cartCustomerName,
+    phone: cartCustomerPhone,
+    city: cartCustomerCity,
+    pay: cartCustomerPay,
     price: totals.final,
-    cartItems: cartItems.map(function(ci){ return {wigName:ci.wigName, price:ci.price, col:ci.col||'', snapshot:ci.snapshot}; }),
+    cartItems: normalizedCartItems,
     cartDiscount: totals.discount,
     createdAt: new Date().toLocaleString('he-IL'),
     status: 'ממתין לתשלום',
+    wig: cartItems.map(function(ci){ return ci.wigName; }).join(' + '),
+    col: cartItems.map(function(ci){ return ci.col||''; }).filter(Boolean).join(' + '),
     wigSummary: cartItems.map(function(ci){ return ci.wigName; }).join(' + ')
   });
 
