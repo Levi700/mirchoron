@@ -3574,10 +3574,24 @@ function openCustomer(id) {
 function deleteOrder(id) {
   orders = orders.filter(function(o){ return o.id!==id; });
   saveOrders();
+
+  // מחיקת כל תזכורות התשלום של הרכישה שנמחקה
+  try {
+    var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+    reminders = reminders.filter(function(r){ return String(r.orderId) !== String(id); });
+    localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
+    window._dueReminders = [];
+    var popup = document.getElementById('due-payments-popup');
+    if (popup) popup.remove();
+    var cont = document.getElementById('reminders-container');
+    if (cont) cont.style.display = 'none';
+  } catch(e) {}
+
   var cm = document.getElementById('customer-modal');
   if (cm) cm.classList.remove('open');
   try { renderCRM(); } catch(e) {}
   try { renderAdminCustomers(); } catch(e) {}
+  try { checkDueReminders(); } catch(e) {}
   toast('הרכישה נמחקה');
 }
 
@@ -5392,6 +5406,19 @@ var OWNER_PHONES = ['0587277033', '0534207705'];
 
 function checkDueReminders() {
   var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+
+  // ניקוי תזכורות של רכישות שנמחקו מהניהול
+  try {
+    var existingOrderIds = (orders || []).map(function(o){ return String(o.id); });
+    var cleaned = reminders.filter(function(r){
+      return r && r.orderId && existingOrderIds.indexOf(String(r.orderId)) !== -1;
+    });
+    if (cleaned.length !== reminders.length) {
+      reminders = cleaned;
+      localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
+    }
+  } catch(e) {}
+
   var today = new Date().toISOString().split('T')[0];
   var tomorrow = new Date(Date.now()+86400000).toISOString().split('T')[0];
   var due = reminders.filter(function(r){ return !r.sent&&(r.date===today||r.date===tomorrow); });
@@ -5407,17 +5434,29 @@ function checkDueReminders() {
     return '<div style="background:var(--card);border:2px solid #f59e0b;border-radius:12px;padding:14px;margin-bottom:10px">'+
       '<div style="font-weight:700;margin-bottom:4px">⏰ תשלום ממתין</div>'+
       '<div style="font-size:13px">לקוחה: <b>'+esc(r.name)+'</b></div>'+
-      '<div style="font-size:13px">סכום: <b>'+r.amount.toLocaleString('he-IL')+' ₪</b> · '+esc(r.type)+'</div>'+
+      '<div style="font-size:13px">סכום: <b>'+reminderAmount(r).toLocaleString('he-IL')+' ₪</b> · '+esc(r.type)+'</div>'+
       '<div style="font-size:13px;margin-bottom:10px">תאריך: <b>'+r.date+'</b>'+(r.date===today?' — <span style="color:#ef4444">היום!</span>':' — מחר')+'</div>'+
       '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
         '<button class="btn btn-blue" onclick="sendReminderWhatsapp('+i+')" style="flex:1;font-size:12px">💬 שלח ללקוחה</button>'+
         '<button class="btn" onclick="markReminderPaid('+i+')" style="flex:1;font-size:12px;background:#22c55e;color:#fff;border-color:#22c55e">✅ שולם</button>'+
         '<button class="btn" onclick="snoozeReminder('+i+')" style="flex:1;font-size:12px">⏰ דחה</button>'+
+        '<button class="btn btn-red" onclick="cancelReminder('+i+')" style="flex:1;font-size:12px">🚫 בטל תזכורת</button>'+
       '</div></div>';
   }).join('');
 
   // הצג popup
   showDuePaymentsPopup(due, today);
+}
+
+function reminderAmount(rem) {
+  return Number((rem && rem.amount) || 0);
+}
+
+function sameReminder(rem, orderId, date, type, amount) {
+  return String(rem && rem.orderId) === String(orderId) &&
+         String(rem && rem.date) === String(date) &&
+         String((rem && rem.type) || '') === String(type || '') &&
+         reminderAmount(rem) === Number(amount || 0);
 }
 
 function showDuePaymentsPopup(due, today) {
@@ -5431,11 +5470,16 @@ function showDuePaymentsPopup(due, today) {
   popup.id = 'due-payments-popup';
   popup.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px';
 
-  var names = todayDue.map(function(r){ return r.name; }).filter(function(v,i,a){ return a.indexOf(v)===i; });
-  var totalAmount = todayDue.reduce(function(s,r){ return s+r.amount; },0);
+  var totalAmount = todayDue.reduce(function(s,r){ return s + reminderAmount(r); },0);
 
   var rows = todayDue.map(function(r){
-    return '<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px 8px">'+esc(r.name)+'</td><td>'+r.amount.toLocaleString('he-IL')+' ₪</td><td>'+esc(r.type)+'</td></tr>';
+    var args = [r.orderId, r.date, r.type || '', reminderAmount(r)].map(function(v){ return JSON.stringify(v); }).join(',');
+    return '<tr style="border-bottom:1px solid #e5e7eb">'+
+      '<td style="padding:6px 8px">'+esc(r.name)+'</td>'+
+      '<td>'+reminderAmount(r).toLocaleString('he-IL')+' ₪</td>'+
+      '<td>'+esc(r.type)+'</td>'+
+      '<td><button onclick="cancelReminderByDetails('+args+')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer">בטל</button></td>'+
+    '</tr>';
   }).join('');
 
   popup.innerHTML =
@@ -5443,7 +5487,7 @@ function showDuePaymentsPopup(due, today) {
     '<div style="font-size:22px;font-weight:800;margin-bottom:6px;color:#f59e0b">⏰ תשלומים להיום!</div>'+
     '<div style="font-size:14px;color:#6b7280;margin-bottom:16px">'+new Date().toLocaleDateString('he-IL', {weekday:'long',day:'numeric',month:'long'})+'</div>'+
     '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">'+
-    '<tr style="background:#f9fafb;font-weight:700"><th style="padding:6px 8px;text-align:right">לקוחה</th><th>סכום</th><th>אמצעי</th></tr>'+
+    '<tr style="background:#f9fafb;font-weight:700"><th style="padding:6px 8px;text-align:right">לקוחה</th><th>סכום</th><th>אמצעי</th><th>ביטול</th></tr>'+
     rows+
     '</table>'+
     '<div style="font-size:15px;font-weight:700;margin-bottom:16px">סה"כ להיום: <span style="color:#2563eb">'+totalAmount.toLocaleString('he-IL')+' ₪</span></div>'+
@@ -5457,15 +5501,20 @@ function showDuePaymentsPopup(due, today) {
 
 function sendDailyPaymentSummaryWhatsapp() {
   var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
+  try {
+    var existingOrderIds = (orders || []).map(function(o){ return String(o.id); });
+    reminders = reminders.filter(function(r){ return r && r.orderId && existingOrderIds.indexOf(String(r.orderId)) !== -1; });
+    localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
+  } catch(e) {}
   var today = new Date().toISOString().split('T')[0];
   var todayDue = reminders.filter(function(r){ return !r.sent && r.date === today; });
   if(todayDue.length === 0) { toast('אין תשלומים להיום'); return; }
 
   var dateHe = new Date().toLocaleDateString('he-IL', {weekday:'long',day:'numeric',month:'long'});
   var lines = todayDue.map(function(r){
-    return '• '+r.name+' — '+r.amount.toLocaleString('he-IL')+' ₪ ('+r.type+')';
+    return '• '+r.name+' — '+reminderAmount(r).toLocaleString('he-IL')+' ₪ ('+r.type+')';
   });
-  var total = todayDue.reduce(function(s,r){ return s+r.amount; },0);
+  var total = todayDue.reduce(function(s,r){ return s + reminderAmount(r); },0);
   var msg = 'תזכורת תשלומים להיום '+dateHe+' 💰\n\n'+lines.join('\n')+'\n\nסה"כ: '+total.toLocaleString('he-IL')+' ₪';
 
   // שלח לרחלי
@@ -5487,23 +5536,42 @@ function sendDailyPaymentSummaryWhatsapp() {
 function sendReminderWhatsapp(i) {
   var r=(window._dueReminders||[])[i]; if(!r) return;
   var phone=r.phone.replace(/\D/g,'').replace(/^0/,'');
-  var msg=encodeURIComponent('היי '+r.name+' ❤️\nתזכורת קטנה לגבי התשלום שנשאר עבור הפאה שלך 🙏\nסכום: '+r.amount.toLocaleString('he-IL')+' ₪ ('+r.type+')\nתאריך: '+r.date+'\nאפשר לשלם בביט / פייבוקס / העברה בנקאית.\nתודה רבה ❤️');
+  var msg=encodeURIComponent('היי '+r.name+' ❤️\nתזכורת קטנה לגבי התשלום שנשאר עבור הפאה שלך 🙏\nסכום: '+reminderAmount(r).toLocaleString('he-IL')+' ₪ ('+r.type+')\nתאריך: '+r.date+'\nאפשר לשלם בביט / פייבוקס / העברה בנקאית.\nתודה רבה ❤️');
   window.open('https://wa.me/972'+phone+'?text='+msg,'_blank');
 }
 
 function markReminderPaid(i) {
   var r=(window._dueReminders||[])[i]; if(!r) return;
   var reminders=JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
-  reminders.forEach(function(rem){ if(rem.orderId===r.orderId&&rem.date===r.date) rem.sent=true; });
+  reminders.forEach(function(rem){ if(sameReminder(rem, r.orderId, r.date, r.type, r.amount)) rem.sent=true; });
   localStorage.setItem('mirchoron_reminders',JSON.stringify(reminders));
   checkDueReminders(); toast('✅ תשלום סומן כשולם');
+}
+
+function cancelReminder(i) {
+  var r=(window._dueReminders||[])[i];
+  if(!r) return;
+  cancelReminderByDetails(r.orderId, r.date, r.type, r.amount);
+}
+
+function cancelReminderByDetails(orderId, date, type, amount) {
+  var reminders = JSON.parse(localStorage.getItem('mirchoron_reminders') || '[]');
+  var before = reminders.length;
+  reminders = reminders.filter(function(rem){
+    return !sameReminder(rem, orderId, date, type, amount);
+  });
+  localStorage.setItem('mirchoron_reminders', JSON.stringify(reminders));
+  var pop = document.getElementById('due-payments-popup');
+  if(pop) pop.remove();
+  checkDueReminders();
+  toast(before !== reminders.length ? '🚫 התזכורת בוטלה' : 'לא נמצאה תזכורת לביטול');
 }
 
 function snoozeReminder(i) {
   var r=(window._dueReminders||[])[i]; if(!r) return;
   var reminders=JSON.parse(localStorage.getItem('mirchoron_reminders')||'[]');
   reminders.forEach(function(rem){
-    if(rem.orderId===r.orderId&&rem.date===r.date){ var d=new Date(rem.date); d.setDate(d.getDate()+1); rem.date=d.toISOString().split('T')[0]; }
+    if(sameReminder(rem, r.orderId, r.date, r.type, r.amount)){ var d=new Date(rem.date); d.setDate(d.getDate()+1); rem.date=d.toISOString().split('T')[0]; }
   });
   localStorage.setItem('mirchoron_reminders',JSON.stringify(reminders));
   checkDueReminders(); toast('⏰ תזכורת נדחתה ליום הבא');
