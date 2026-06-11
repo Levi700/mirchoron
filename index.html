@@ -574,12 +574,13 @@ button.tab-btn.active{
         <div class="field"><label>סגנון גוונים</label><select id="wig-highlight-style"><option value="">בחרי/נעדכן בהמשך</option><option>עדין</option><option>בולט</option><option>מסגרת פנים</option><option>בליאז׳</option><option>אומברה</option><option>סומברה</option><option>צבע אחיד</option><option>אחר - בהערות</option></select></div>
       </div>
       <div class="g2">
+        <div class="field"><label>גוונים מהארץ <span class="addon-price-label" data-addon="highlightLocal">+₪500</span></label><select id="wig-highlight-local" onchange="recalcOrderPriceAdjustments()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
         <div class="field"><label>אחוז גוונים</label><select id="wig-highlight-pct"><option value="">בחרי/לא רלוונטי</option><option>10%</option><option>20%</option><option>30%</option><option>40%</option><option>50%</option><option>60%</option><option>70%</option><option>80%</option><option>90%</option><option>100%</option></select></div>
       </div>
       <div class="field"><label>שביל צד</label><select id="wig-part"><option value="">ללא שביל / לא רלוונטי</option><option value="Path to the right, hair to the left">שביל בצד ימין — שיער לכיוון שמאל</option><option value="Path to the left, hair to the right">שביל בצד שמאל — שיער לכיוון ימין</option></select></div>
       <div class="g2">
         <div class="field"><label>Baby Hair מהמפעל (טישטושים)</label><select id="wig-baby-factory" onchange="applyBabyHairCharge()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
-        <div class="field"><label>Baby Hair מהארץ (טישטושים) +₪500</label><select id="wig-baby-local" onchange="applyBabyHairCharge()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
+        <div class="field"><label>Baby Hair מהארץ (טישטושים) <span class="addon-price-label" data-addon="babyLocal">+₪500</span></label><select id="wig-baby-local" onchange="applyBabyHairCharge()"><option value="">ללא</option><option>BB1</option><option>BB2</option><option>BB3</option><option>BB4</option><option>BB5</option><option>BB6</option><option>BB7</option><option>BB8</option><option>BB9</option><option>BB10</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
       </div>
       <div class="field"><label>תיקונים / הערות לפאה</label><input type="text" id="wig-notes" placeholder="כל פרט נוסף שחשוב לייצור"></div>
 
@@ -602,7 +603,6 @@ button.tab-btn.active{
       <div class="field"><label>טלפון</label><input type="tel" id="ord-phone" placeholder="050-0000000"></div>
       <div class="field"><label>עיר</label><input type="text" id="ord-city" placeholder="עיר מגורים"></div>
       <div class="field"><label>ימי עסקים להכנה</label><input type="number" id="ord-days" min="1" placeholder="לדוגמה: 45"></div>
-      <div class="field"><label>אמצעי תשלום</label><select id="ord-pay"><option value="מזומן">מזומן</option><option value="כרטיס אשראי">כרטיס אשראי</option><option value="העברה בנקאית">העברה בנקאית</option><option value="ביט">ביט</option><option value="פייבוקס">פייבוקס</option></select></div>
       <div class="field"><label>הערות כלליות</label><input type="text" id="ord-notes" placeholder="הערות נוספות (אופציונלי)"></div>
       <div class="order-actions"><button class="btn" onclick="goOrderStep(1)">חזרה</button><button class="btn btn-blue" onclick="goOrderStep(3)">המשך לתקנון</button></div>
     </div>
@@ -758,6 +758,14 @@ button.tab-btn.active{
       </div>
       <button class="btn btn-blue" onclick="saveSettings()" style="width:100%">&#10003; שמור הגדרות</button>
       <div class="sep"></div>
+      <div class="sec-title">&#x1F4B0; מחירי תוספות מהארץ</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">מחיר התוספת מתווסף אוטומטית למחיר הפאה בטופס ההזמנה.</p>
+      <div class="g2">
+        <div class="field"><label>Baby Hair מהארץ — טישטושים (&#x20AA;)</label><input type="number" id="cfg-baby-local-price" min="0" step="10"></div>
+        <div class="field"><label>גוונים מהארץ (&#x20AA;)</label><input type="number" id="cfg-highlight-local-price" min="0" step="10"></div>
+      </div>
+      <button class="btn btn-blue" onclick="saveAddonPrices()" style="width:100%">&#10003; שמור מחירי תוספות</button>
+      <div class="sep"></div>
       <div class="sec-title">&#x1F525; ניהול מבצעים</div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:12px">הגדר הנחה על פריט ספציפי — הלקוחה תראה מחיר מקורי + מחיר מבצע.</p>
       <div class="g2">
@@ -900,6 +908,14 @@ button.tab-btn.active{
         </div>
         <div class="field"><label>שם בעל החשבון</label><input type="text" id="acct-name" placeholder="השם המלא כפי שמופיע בחשבון"></div>
         <button class="btn btn-blue" onclick="saveBankAccount()" style="width:100%">💾 שמור פרטי חשבון</button>
+        <div class="sep"></div>
+        <div class="sec-title">📜 עריכת תקנון ואחריות</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.6">הנוסח כאן יוצג ללקוחה בשלב התקנון, בשליחה לוואטסאפ/מייל ובקובץ החתום. אפשר לכתוב <b>{DAYS}</b> בכל מקום — והוא יוחלף אוטומטית במספר ימי העסקים של ההזמנה.</p>
+        <textarea id="cfg-terms-text" style="width:100%;min-height:240px;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;line-height:1.65;font-family:inherit;background:var(--card);color:var(--text);resize:vertical"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-blue" onclick="saveTermsText()" style="flex:1">💾 שמור תקנון</button>
+          <button class="btn" onclick="resetTermsText()" style="flex:1">↺ שחזר לנוסח המקורי</button>
+        </div>
         <div class="sep"></div>
         <div class="g2">
           <div class="field"><label>סיסמה חדשה</label><input type="password" id="new-pin1" maxlength="6" inputmode="numeric"></div>
@@ -2289,7 +2305,7 @@ function openOrderFromGallery(){
     gbox.style.display='block';
     gbox.innerHTML='<div class="gallery-order-preview">'+(p.url?'<img src="'+p.url+'">':'')+'<div><div style="font-weight:800">'+esc(p.name||'')+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5">הנתונים האלו הגיעו מהגלריה ונשמרים אוטומטית בהזמנה:<br>'+esc([p.type,p.color,p.style,p.length].filter(Boolean).join(' · '))+'</div></div></div><div class="gallery-lock-box">הפאה נבחרה מהגלריה. הנתונים מולאו אוטומטית, אבל אפשר לשנות או להשלים כל שדה לפני השליחה ליצרן.</div>';
   }
-  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-highlight-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   applyClientToOrder();
   setSelectIfOption('wig-hair', p.style);
   setSelectIfOption('wig-base-color', p.color);
@@ -2297,7 +2313,6 @@ function openOrderFromGallery(){
   // לא ממלאים הערות אוטומטית מהגלריה
   document.getElementById('ord-price').value = priceInfo.price || '';
   document.getElementById('ord-orig-price').textContent = priceInfo.price ? 'מחיר לפי מחירון: ₪' + priceInfo.price.toLocaleString('he-IL') : 'לא נמצא מחיר אוטומטי — להזין ידנית';
-  document.getElementById('ord-pay').value = 'מזומן';
   document.getElementById('ord-terms-ok').checked = false;
   document.getElementById('order-copy-preview').style.display = 'none';
   document.getElementById('order-copy-preview').textContent = '';
@@ -2306,7 +2321,7 @@ function openOrderFromGallery(){
   setOrderFixedFields('gallery', {wigType: p.type||'', len: p.length||'', structure: p.structure||''});
   // מלא את שאר השדות מהגלריה
   setTimeout(function(){
-    ['wig-cap','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct','wig-part'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    ['wig-cap','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct','wig-highlight-local','wig-part'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
     setSelectIfOption('wig-cap',              p.cap);
     setSelectIfOption('wig-hair',             p.hair);
     setSelectIfOption('wig-base-color',       p.baseColor);
@@ -2579,7 +2594,7 @@ var signatureHasInk = false;
 var WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/KUwyS6HIbD50r5MCuK3FUE';
 var currentOrderTextForSend = '';
 
-var TERMS_TEXT = 'אחריות והצהרת לקוחה\n' +
+var DEFAULT_TERMS_TEXT = 'אחריות והצהרת לקוחה\n' +
 'ידוע לי כי רכשתי פאה אצל הפאנית רחלי קאשי.\n' +
 'ידוע לי כי עלי להמתין {DAYS} ימי עסקים עד שהפאה תהיה מוכנה.\n' +
 'ידוע לי ההבדל בין פאות יוקרה לפאות נגישות.\n\n' +
@@ -2599,6 +2614,37 @@ var TERMS_TEXT = 'אחריות והצהרת לקוחה\n' +
 'לאחר חתימה על הזמנה זו לא ניתן לשנות את פרטי ההזמנה.\n' +
 'עיכוב שאינו תלוי ביצרנית אינו מהווה עילה לביטול העסקה.\n' +
 'לאחר מסירת הפאה אין החזר כספי.';
+
+// תקנון פעיל: נוסח מותאם מהניהול אם נשמר, אחרת הנוסח המקורי
+var TERMS_TEXT = DEFAULT_TERMS_TEXT;
+try {
+  var __customTerms = localStorage.getItem(STORE_KEY + '_terms_text');
+  if (__customTerms && __customTerms.trim()) TERMS_TEXT = __customTerms;
+} catch(e){}
+
+function loadTermsEditor() {
+  var ta = document.getElementById('cfg-terms-text');
+  if (ta) ta.value = TERMS_TEXT;
+}
+function saveTermsText() {
+  var ta = document.getElementById('cfg-terms-text');
+  if (!ta) return;
+  var t = ta.value.trim();
+  if (!t) { alert('התקנון לא יכול להיות ריק'); return; }
+  TERMS_TEXT = t;
+  try { localStorage.setItem(STORE_KEY + '_terms_text', t); }
+  catch(e) { toast('⚠️ שגיאת שמירה'); return; }
+  if (typeof updateTermsText === 'function') updateTermsText();
+  toast('התקנון נשמר ✓');
+}
+function resetTermsText() {
+  if (!confirm('לשחזר את התקנון לנוסח המקורי? הנוסח המותאם יימחק.')) return;
+  TERMS_TEXT = DEFAULT_TERMS_TEXT;
+  try { localStorage.removeItem(STORE_KEY + '_terms_text'); } catch(e){}
+  loadTermsEditor();
+  if (typeof updateTermsText === 'function') updateTermsText();
+  toast('התקנון שוחזר לנוסח המקורי');
+}
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function val(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; }
@@ -2686,12 +2732,11 @@ function openOrderModal(idx) {
   document.getElementById('order-wig-info').innerHTML =
     '<strong>' + esc(item.wig) + '</strong> — ' + esc(item.col) +
     (rateNow ? '<br><span style="font-size:12px;color:var(--muted)">שער דולר עכשיו: ₪' + rateNow.toFixed(3) + '</span>' : '');
-  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-highlight-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   applyClientToOrder();
   setOrderFixedFields('price', item);
   document.getElementById('ord-price').value = item.price;
   document.getElementById('ord-orig-price').textContent = 'מחיר מחירון: ₪' + item.price.toLocaleString('he-IL');
-  document.getElementById('ord-pay').value = 'מזומן';
   document.getElementById('ord-terms-ok').checked = false;
   document.getElementById('order-copy-preview').style.display = 'none';
   document.getElementById('order-copy-preview').textContent = '';
@@ -2822,8 +2867,8 @@ function collectOrderData(){
   var o = Object.assign({}, pendingOrder || {});
   if (!isNaN(editedPrice) && editedPrice > 0) o.price = editedPrice;
   o.name = val('ord-name'); o.phone = val('ord-phone'); o.city = val('ord-city');
-  o.pay = val('ord-pay') || 'מזומן'; o.notes = val('ord-notes'); o.days = val('ord-days');
-  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), notes:val('wig-notes') };
+  o.pay = 'טרם נקבע'; // נקבע אוטומטית במסך התשלום בסוף התהליך o.notes = val('ord-notes'); o.days = val('ord-days');
+  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), highlightLocal:val('wig-highlight-local'), notes:val('wig-notes') };
   o.inspoIdx   = inspoSelected ? inspoSelected.idx : null;
   o.inspoNote  = val('inspo-note');
   o.termsApproved = !!document.getElementById('ord-terms-ok').checked;
@@ -2883,6 +2928,8 @@ function buildFullCustomerOrderText(o){
     'צבע גוונים: ' + (d.highlightColor||'') + '\n' +
     'סגנון גוונים: ' + (d.highlightStyle||'') + '\n' +
     'אחוז גוונים: ' + (d.highlightPct||'') + '\n' +
+    ((d.highlightLocal)?('גוונים מהארץ: ' + d.highlightLocal + '\n'):'') +
+    ((d.babyLocal)?('Baby Hair מהארץ (טישטושים): ' + d.babyLocal + '\n'):'') +
     'הערות ייצור: ' + (d.notes||'') + '\n\n' +
     'הערות כלליות: ' + (o.notes||'') + '\n' +
     'תקנון אושר: ' + (o.termsApproved ? 'כן' : 'לא');
@@ -3412,6 +3459,7 @@ function editDraftOrder(id) {
     setV('wig-part', d.part);
     setV('wig-baby-factory', d.babyFactory);
     setV('wig-baby-local', d.babyLocal);
+    setV('wig-highlight-local', d.highlightLocal);
     setV('wig-notes', d.notes);
     setV('ord-name', order.name); setV('ord-phone', order.phone);
     setV('ord-city', order.city); setV('ord-email', order.email);
@@ -3616,7 +3664,7 @@ function switchAdminTab(tab) {
   });
   if (tab==='customers') renderAdminCustomers();
   if (tab==='gallery') renderGalAdminList();
-  if (tab==='settings') { loadBankAccount(); }
+  if (tab==='settings') { loadBankAccount(); loadTermsEditor(); }
   if (tab==='price') { setTimeout(initDeal2Admin, 100); }
 }
 
@@ -3888,7 +3936,8 @@ function exportBackup() {
     orders: orders,
     gal:    galPhotos,
     pin:    pin,
-    rate:   lastRate
+    rate:   lastRate,
+    termsText: (TERMS_TEXT !== DEFAULT_TERMS_TEXT ? TERMS_TEXT : null)
   };
   var json = JSON.stringify(backup, null, 2);
   var blob = new Blob([json], {type:'application/json;charset=utf-8'});
@@ -3913,6 +3962,10 @@ function importBackup(input) {
       if (backup.gal)    { galPhotos = backup.gal; saveGal(); }
       if (backup.pin)    { pin = backup.pin;       savePin(pin); }
       if (backup.rate)   { lastRate = backup.rate; saveRate(backup.rate); }
+      if (backup.termsText) {
+        TERMS_TEXT = backup.termsText;
+        try { localStorage.setItem(STORE_KEY + '_terms_text', backup.termsText); } catch(e){}
+      }
       render();
       renderGallery();
       toast('הנתונים יובאו בהצלחה!');
@@ -4043,7 +4096,7 @@ function resetOrderFormForNewOrder(){
     // איפוס שדות טופס רכישה
     [
       'wig-cap','wig-structure','wig-hair','wig-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct',
-      'wig-part','wig-baby-factory','wig-baby-local','wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
+      'wig-part','wig-baby-factory','wig-baby-local','wig-highlight-local','wig-notes','cust-name','cust-phone','cust-city','cust-email','business-days',
       'terms-whatsapp-phone','terms-email'
     ].forEach(function(id){
       var el=document.getElementById(id);
@@ -4988,7 +5041,7 @@ function checkoutCart() {
   var cartCustomerName = clientNameClean() || mainSnap.name || firstCartField('name') || '';
   var cartCustomerPhone = mainSnap.phone || firstCartField('phone') || '';
   var cartCustomerCity = mainSnap.city || firstCartField('city') || '';
-  var cartCustomerPay = mainSnap.pay || firstCartField('pay') || 'מזומן';
+  var cartCustomerPay = mainSnap.pay || firstCartField('pay') || 'טרם נקבע';
 
   // ודא שכל פאה בתוך ההזמנה המאוחדת מקבלת את אותם פרטי לקוחה,
   // כדי שבניהול יוצגו כל הפאות תחת אותה לקוחה ולא ייעלם שם הלקוחה.
@@ -5385,7 +5438,7 @@ function toggleCustomPay(i){ customPayments[i].paid=!customPayments[i].paid; upd
 function markPaymentDone(method) {
   if(currentPayOrderId){
     var idx=orders.findIndex(function(o){ return o.id===currentPayOrderId; });
-    if(idx!==-1){ orders[idx].payMethod=method; orders[idx].payments=[{type:method,amount:orders[idx].price||0,date:new Date().toISOString().split('T')[0],paid:true}]; saveOrders(); }
+    if(idx!==-1){ orders[idx].payMethod=method; orders[idx].pay=method; orders[idx].payments=[{type:method,amount:orders[idx].price||0,date:new Date().toISOString().split('T')[0],paid:true}]; saveOrders(); }
   }
   toast('✅ תשלום סומן — '+method);
   closeOrderSuccess();
@@ -5677,7 +5730,14 @@ function markStandingDone() {
 function saveCustomPayments() {
   if(currentPayOrderId) {
     var idx = orders.findIndex(function(o){ return o.id===currentPayOrderId; });
-    if(idx!==-1) { orders[idx].payments=customPayments; saveOrders(); }
+    if(idx!==-1) {
+      orders[idx].payments=customPayments;
+      var payTypes = [];
+      (customPayments||[]).forEach(function(p){ if(p.type && payTypes.indexOf(p.type)===-1) payTypes.push(p.type); });
+      if(payTypes.length===1) orders[idx].pay = payTypes[0];
+      else if(payTypes.length>1) orders[idx].pay = payTypes.join(' + ');
+      saveOrders();
+    }
     schedulePaymentReminders(customPayments, currentSuccessOrder);
   }
   toast('תשלומים נשמרו');
@@ -5777,6 +5837,8 @@ function recalcOrderPriceAdjustments() {
   var wigType = (document.getElementById('wig-type')||{}).value || '';
   var density = (document.getElementById('wig-density')||{}).value || '';
   var localBaby = (document.getElementById('wig-baby-local')||{}).value || '';
+  var localHighlight = (document.getElementById('wig-highlight-local')||{}).value || '';
+  var addonPrices = getAddonPrices();
   var noteEl = document.getElementById('density-note');
   var finalPrice = basePrice;
   var notes = [];
@@ -5794,13 +5856,63 @@ function recalcOrderPriceAdjustments() {
   }
 
   if (localBaby) {
-    finalPrice += 500;
-    notes.push('Baby Hair מהארץ — תוספת: ₪500');
+    finalPrice += addonPrices.babyLocal;
+    notes.push('Baby Hair מהארץ — תוספת: ₪' + addonPrices.babyLocal.toLocaleString('he-IL'));
+  }
+
+  if (localHighlight) {
+    finalPrice += addonPrices.highlightLocal;
+    notes.push('גוונים מהארץ — תוספת: ₪' + addonPrices.highlightLocal.toLocaleString('he-IL'));
   }
 
   priceEl.value = finalPrice;
   if (noteEl) noteEl.textContent = notes.join(' | ');
 }
+
+var ADDON_PRICE_DEFAULTS = { babyLocal: 500, highlightLocal: 500 };
+
+function getAddonPrices() {
+  try {
+    var s = localStorage.getItem(STORE_KEY + '_addon_prices');
+    var p = s ? JSON.parse(s) : {};
+    return {
+      babyLocal:      (typeof p.babyLocal === 'number' && !isNaN(p.babyLocal) && p.babyLocal >= 0) ? p.babyLocal : ADDON_PRICE_DEFAULTS.babyLocal,
+      highlightLocal: (typeof p.highlightLocal === 'number' && !isNaN(p.highlightLocal) && p.highlightLocal >= 0) ? p.highlightLocal : ADDON_PRICE_DEFAULTS.highlightLocal
+    };
+  } catch(e) { return Object.assign({}, ADDON_PRICE_DEFAULTS); }
+}
+
+function saveAddonPrices() {
+  var bEl = document.getElementById('cfg-baby-local-price');
+  var hEl = document.getElementById('cfg-highlight-local-price');
+  var b = parseFloat(bEl ? bEl.value : '');
+  var h = parseFloat(hEl ? hEl.value : '');
+  if (isNaN(b) || b < 0 || isNaN(h) || h < 0) { alert('נא להזין מחירים תקינים (0 ומעלה)'); return; }
+  try { localStorage.setItem(STORE_KEY + '_addon_prices', JSON.stringify({ babyLocal: b, highlightLocal: h })); }
+  catch(e) { toast('⚠️ שגיאת שמירה'); return; }
+  updateAddonPriceLabels();
+  recalcOrderPriceAdjustments();
+  toast('מחירי התוספות נשמרו');
+}
+
+function loadAddonPriceFields() {
+  var p = getAddonPrices();
+  var bEl = document.getElementById('cfg-baby-local-price');
+  if (bEl) bEl.value = p.babyLocal;
+  var hEl = document.getElementById('cfg-highlight-local-price');
+  if (hEl) hEl.value = p.highlightLocal;
+}
+
+function updateAddonPriceLabels() {
+  var p = getAddonPrices();
+  document.querySelectorAll('.addon-price-label').forEach(function(el){
+    var k = el.getAttribute('data-addon');
+    if (p[k] != null) el.textContent = '+₪' + Number(p[k]).toLocaleString('he-IL');
+  });
+}
+
+loadAddonPriceFields();
+updateAddonPriceLabels();
 
 function applyDensityDiscount() {
   recalcOrderPriceAdjustments();
