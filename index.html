@@ -258,6 +258,15 @@ button.tab-btn.active{
 .gallery-count-label{font-size:12px;color:var(--muted);font-weight:700;margin-top:5px}
 .gallery-count-note{font-size:11px;color:var(--hint);margin-top:4px}
 
+
+/* ניהול פרמטרים ופאות מוכנות */
+.param-admin-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px}
+.param-admin-title{font-size:14px;font-weight:800;margin-bottom:8px;color:var(--text)}
+.param-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 10px;margin:3px;font-size:13px}
+.param-chip button{border:0;background:none;color:var(--danger);font-size:16px;line-height:1;cursor:pointer}
+.ready-profile-card{border:1px solid var(--border);border-radius:12px;background:var(--bg);padding:10px;margin-bottom:8px;font-size:13px}
+.ready-profile-card b{font-size:14px}
+
 /* ── עורך תמונה ── */
 #img-editor-modal{display:none;position:fixed;inset:0;z-index:700;background:var(--card);overflow-y:auto;padding:0}
 #img-editor-modal.open{display:flex;align-items:flex-start;justify-content:center}
@@ -509,6 +518,7 @@ button.tab-btn.active{
       <div class="field"><label>מידת רשת</label><select id="edit-gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
     </div>
     <div class="field"><label>סוג תלתול</label><select id="edit-gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+      <div class="field"><label>קוד צבע יצרן / פאה מוכנה</label><select id="edit-gal-ready-profile"><option value="">בחרי קוד יצרן / לא רלוונטי</option></select></div>
     <div class="g2">
       <div class="field"><label>צבע בסיס</label><select id="edit-gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
       <div class="field"><label>צבע בסיס צבוע</label><select id="edit-gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
@@ -565,6 +575,7 @@ button.tab-btn.active{
           </select>
         </div>
       <div class="field"><label>סוג תלתול</label><select id="wig-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+      <div class="field"><label>קוד צבע יצרן / פאה מוכנה</label><select id="wig-ready-profile"><option value="">בחרי קוד יצרן / לא רלוונטי</option></select></div>
       <div class="g2">
         <div class="field"><label>צבע בסיס</label><select id="wig-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
         <div class="field"><label>צבע בסיס צבוע</label><select id="wig-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
@@ -705,10 +716,11 @@ button.tab-btn.active{
     </div>
 
     <div id="content-wrap">
-      <div class="admin-tabs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+      <div class="admin-tabs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px">
         <button class="admin-tab active" id="atab-price"     onclick="switchAdminTab('price')">📋 מחירון</button>
         <button class="admin-tab"        id="atab-customers" onclick="switchAdminTab('customers')">👤 לקוחות</button>
         <button class="admin-tab"        id="atab-gallery"   onclick="switchAdminTab('gallery')">🖼 גלריה</button>
+        <button class="admin-tab"        id="atab-params"    onclick="switchAdminTab('params')">🎨 פרטים</button>
         <button class="admin-tab"        id="atab-settings"  onclick="switchAdminTab('settings')">⚙️ הגדרות</button>
       </div>
 
@@ -838,6 +850,29 @@ button.tab-btn.active{
       <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
       </div><!-- /admin-pricelist -->
 
+
+      <!-- ── טאב פרטי פאה ── -->
+      <div id="admin-params" style="display:none">
+        <div class="sec-title">🎨 ניהול פרמטרי פאה</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">כאן אפשר להוסיף/למחוק ערכים לרשימות הבחירה: צבעי בסיס, גוונים, סוג שיער, מידות ועוד. השינוי יחול רק מכאן והלאה ולא משנה הזמנות שכבר נשמרו.</p>
+        <div class="g2">
+          <div class="field"><label>בחרי רשימה לעריכה</label><select id="param-kind" onchange="renderParamAdmin()"></select></div>
+          <div class="field"><label>ערך חדש</label><input type="text" id="param-new-value" placeholder="למשל BB11 / ברונד טבעי / אומברה"></div>
+        </div>
+        <button class="btn btn-blue" onclick="addParamValue()" style="width:100%;margin-bottom:10px">+ הוסף ערך לרשימה</button>
+        <div id="param-values-list" class="param-admin-card"></div>
+        <button class="btn" onclick="resetParamKind()" style="width:100%;margin-bottom:14px">איפוס הרשימה הנוכחית לברירת מחדל</button>
+
+        <div class="sep"></div>
+        <div class="sec-title">✨ ניהול קודי פאות מוכנות / צבעי יצרן</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">כאן מוסיפים רק את השמות/הקודים שהיצרן משתמש בהם לצבעים מוכנים, לדוגמה DR7. הבחירה בקוד לא משנה אוטומטית צבע בסיס או גוונים — היא רק נשמרת ומופיעה בהזמנה ובדוח ליצרן.</p>
+        <div class="field"><label>קוד / שם צבע יצרן</label><input type="text" id="ready-name" placeholder="למשל: DR7 / BR18 / Ombre 16-18"></div>
+        <button class="btn btn-blue" onclick="saveReadyProfile()" style="width:100%;margin-bottom:10px">💾 שמור קוד פאה מוכנה</button>
+        <div id="ready-profiles-list"></div>
+        <div class="sep"></div>
+        <button class="btn btn-red" onclick="closeAdmin()" style="width:100%">סגור ניהול</button>
+      </div><!-- /admin-params -->
+
       <!-- ── טאב לקוחות ── -->
       <div id="admin-customers">
         <div class="sec-title">סיכום</div>
@@ -870,6 +905,7 @@ button.tab-btn.active{
           <div class="field"><label>מידת רשת</label><select id="gal-cap"><option value="">בחרי</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option></select></div>
         </div>
         <div class="field"><label>סוג תלתול</label><select id="gal-hair"><option value="">בחרי</option><option>straight</option><option>curly</option><option>stronger wave</option><option>slight wave</option><option>slight wave from the jaw</option><option>bottom wave</option><option>very slight wave</option><option>bottom very slight wave</option></select></div>
+        <div class="field"><label>קוד צבע יצרן / פאה מוכנה</label><select id="gal-ready-profile"><option value="">בחרי קוד יצרן / לא רלוונטי</option></select></div>
         <div class="g2">
           <div class="field"><label>צבע בסיס</label><select id="gal-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B#</option><option>2#</option><option>2/4</option><option>4#</option><option>4/6</option><option>6#</option><option>6/8</option></select></div>
           <div class="field"><label>צבע בסיס צבוע</label><select id="gal-painted-base-color"><option value="">בחרי/השאירי פתוח</option><option>1B</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>18</option></select></div>
@@ -2321,9 +2357,10 @@ function openOrderFromGallery(){
   setOrderFixedFields('gallery', {wigType: p.type||'', len: p.length||'', structure: p.structure||''});
   // מלא את שאר השדות מהגלריה
   setTimeout(function(){
-    ['wig-cap','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct','wig-highlight-local','wig-part'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    ['wig-cap','wig-hair','wig-ready-profile','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-highlight-pct','wig-highlight-local','wig-part'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
     setSelectIfOption('wig-cap',              p.cap);
     setSelectIfOption('wig-hair',             p.hair);
+    setSelectIfOption('wig-ready-profile',    p.readyCode);
     setSelectIfOption('wig-base-color',       p.baseColor);
     setSelectIfOption('wig-painted-base-color', p.paintedBaseColor);
     setSelectIfOption('wig-highlight-color',  p.highlightColor);
@@ -2405,6 +2442,7 @@ function addGalPhoto() {
   const structure        = document.getElementById('gal-structure').value;
   const cap              = document.getElementById('gal-cap').value;
   const hair             = document.getElementById('gal-hair').value;
+  const readyCode        = document.getElementById('gal-ready-profile').value;
   const baseColor        = document.getElementById('gal-base-color').value;
   const paintedBaseColor = document.getElementById('gal-painted-base-color').value;
   const highlightColor   = document.getElementById('gal-highlight-color').value;
@@ -2423,7 +2461,7 @@ function addGalPhoto() {
   previewUrls.forEach(function(editedUrl, fileIdx) {
     function processUrl(dataUrl) {
       compressImage(dataUrl, function(compressed) {
-        galPhotos.push({name,type,length,structure,cap,hair,baseColor,paintedBaseColor,highlightColor,highlightStyle,highlightPct,part,url:compressed,groupId});
+        galPhotos.push({name,type,length,structure,cap,hair,readyCode,baseColor,paintedBaseColor,highlightColor,highlightStyle,highlightPct,part,url:compressed,groupId});
         loaded++;
         if (loaded===total) {
           saveGal();
@@ -2859,7 +2897,7 @@ function manufacturerWigName(o){ var d=(o&&o.wigDetails)||{}; if(d.wigType||d.le
 function manufacturerCategory(o){ var d=(o&&o.wigDetails)||{}; return translateManufacturerValue(d.structure||'') || translateMixedHebrewToEnglish((o&&o.col)||''); }
 function manufacturerGalleryDetails(gd){
   gd=gd||{};
-  return [gd.name, translateMixedHebrewToEnglish(gd.type||''), translateManufacturerValue(gd.color||''), translateManufacturerValue(gd.style||''), inchesToEnglish(gd.length||'')].filter(Boolean).join(' · ');
+  return [gd.name, translateMixedHebrewToEnglish(gd.type||''), gd.readyCode||'', translateManufacturerValue(gd.color||''), translateManufacturerValue(gd.style||''), inchesToEnglish(gd.length||'')].filter(Boolean).join(' · ');
 }
 
 function collectOrderData(){
@@ -2868,7 +2906,7 @@ function collectOrderData(){
   if (!isNaN(editedPrice) && editedPrice > 0) o.price = editedPrice;
   o.name = val('ord-name'); o.phone = val('ord-phone'); o.city = val('ord-city');
   o.pay = 'טרם נקבע'; // נקבע אוטומטית במסך התשלום בסוף התהליך o.notes = val('ord-notes'); o.days = val('ord-days');
-  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), highlightLocal:val('wig-highlight-local'), notes:val('wig-notes') };
+  o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), readyCode:val('wig-ready-profile'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), highlightLocal:val('wig-highlight-local'), notes:val('wig-notes') };
   o.inspoIdx   = inspoSelected ? inspoSelected.idx : null;
   o.inspoNote  = val('inspo-note');
   o.termsApproved = !!document.getElementById('ord-terms-ok').checked;
@@ -2891,6 +2929,7 @@ function buildOrderText(o){
     line('Cap size', d.cap||'') +
     line('Structure / layers', d.structure ? translateManufacturerValue(d.structure) : '') +
     line('Curl type', translateManufacturerValue(d.hair||'')) +
+    line('Ready wig / manufacturer color code', d.readyCode||'') +
     line('Base color', translateManufacturerValue(d.baseColor||'')) +
     line('Painted base color', translateManufacturerValue(d.paintedBaseColor||'')) +
     line('Highlights color', translateManufacturerValue(d.highlightColor||'')) +
@@ -2923,6 +2962,7 @@ function buildFullCustomerOrderText(o){
     'מידת רשת: ' + (d.cap||'') + '\n' +
     ((d.structure)?('מבנה/דירוג: ' + d.structure + '\n'):'') +
     'סוג תלתול: ' + (d.hair||'') + '\n' +
+    ((d.readyCode)?('קוד פאה מוכנה / צבע יצרן: ' + d.readyCode + '\n'):'') +
     'צבע בסיס: ' + (d.baseColor||'') + '\n' +
     'צבע בסיס צבוע: ' + (d.paintedBaseColor||'') + '\n' +
     'צבע גוונים: ' + (d.highlightColor||'') + '\n' +
@@ -3451,7 +3491,7 @@ function editDraftOrder(id) {
     var setV = function(id, v){ var el=document.getElementById(id); if(el&&v) el.value=v; };
     setV('wig-type', d.wigType); setV('wig-length', d.length);
     setV('wig-cap', d.cap); setV('wig-structure', d.structure);
-    setV('wig-hair', d.hair); setV('wig-base-color', d.baseColor);
+    setV('wig-hair', d.hair); setV('wig-ready-profile', d.readyCode); setV('wig-base-color', d.baseColor);
     setV('wig-painted-base-color', d.paintedBaseColor);
     setV('wig-highlight-color', d.highlightColor);
     setV('wig-highlight-style', d.highlightStyle);
@@ -3564,7 +3604,7 @@ function openCustomer(id) {
     var wigTitle = (orderLike && (orderLike.wig || orderLike.wigName)) ? '<br><strong>'+esc(orderLike.wig || orderLike.wigName)+'</strong>' : '';
     var colorLine = (orderLike && orderLike.col) ? '<br>'+esc(orderLike.col) : '';
     var priceLine = (orderLike && orderLike.price) ? '<br><span style="font-weight:700;color:var(--accent)">₪'+Number(orderLike.price||0).toLocaleString('he-IL')+'</span>' : '';
-    return '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>'+title+':</b>'+wigTitle+colorLine+priceLine+'<br>מידת רשת: '+esc(dd.cap||'')+(dd.structure?'<br>מבנה: '+esc(dd.structure):'')+'<br>סוג תלתול: '+esc(dd.hair||'')+'<br>צבע בסיס: '+esc(dd.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(dd.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(dd.highlightColor||'')+'<br>סגנון גוונים: '+esc(dd.highlightStyle||'')+'<br>אחוז גוונים: '+esc(dd.highlightPct||'')+'<br>הערות לפאה: '+esc(dd.notes||'')+'</div>';
+    return '<div style="background:var(--bg);border-radius:10px;padding:10px"><b>'+title+':</b>'+wigTitle+colorLine+priceLine+'<br>מידת רשת: '+esc(dd.cap||'')+(dd.structure?'<br>מבנה: '+esc(dd.structure):'')+'<br>סוג תלתול: '+esc(dd.hair||'')+(dd.readyCode?'<br>קוד פאה מוכנה / צבע יצרן: '+esc(dd.readyCode):'')+'<br>צבע בסיס: '+esc(dd.baseColor||'')+'<br>צבע בסיס צבוע: '+esc(dd.paintedBaseColor||'')+'<br>צבע גוונים: '+esc(dd.highlightColor||'')+'<br>סגנון גוונים: '+esc(dd.highlightStyle||'')+'<br>אחוז גוונים: '+esc(dd.highlightPct||'')+'<br>הערות לפאה: '+esc(dd.notes||'')+'</div>';
   }
   function renderAllWigDetails(){
     if (o.cartItems && o.cartItems.length) {
@@ -3657,13 +3697,15 @@ function switchAdminTab(tab) {
   document.getElementById('admin-pricelist').style.display  = tab==='price'     ? 'block' : 'none';
   document.getElementById('admin-customers').style.display  = tab==='customers' ? 'block' : 'none';
   document.getElementById('admin-gallery').style.display    = tab==='gallery'   ? 'block' : 'none';
+  var ptab = document.getElementById('admin-params'); if (ptab) ptab.style.display = tab==='params' ? 'block' : 'none';
   document.getElementById('admin-settings').style.display   = tab==='settings'  ? 'block' : 'none';
-  ['price','customers','gallery','settings'].forEach(function(t){
+  ['price','customers','gallery','params','settings'].forEach(function(t){
     var el = document.getElementById('atab-'+t);
     if (el) el.className = 'admin-tab' + (tab===t ? ' active' : '');
   });
   if (tab==='customers') renderAdminCustomers();
   if (tab==='gallery') renderGalAdminList();
+  if (tab==='params') { initParamAdmin(); renderParamAdmin(); renderReadyProfiles(); }
   if (tab==='settings') { loadBankAccount(); loadTermsEditor(); }
   if (tab==='price') { setTimeout(initDeal2Admin, 100); }
 }
@@ -4818,6 +4860,7 @@ function openGalEditDetails(encodedGroup) {
   setV('edit-gal-structure',        p.structure);
   setV('edit-gal-cap',              p.cap);
   setV('edit-gal-hair',             p.hair);
+  setV('edit-gal-ready-profile',    p.readyCode);
   setV('edit-gal-base-color',       p.baseColor);
   setV('edit-gal-painted-base-color', p.paintedBaseColor);
   setV('edit-gal-highlight-color',  p.highlightColor);
@@ -4843,6 +4886,7 @@ function saveGalEditDetails() {
     structure: gV('edit-gal-structure'),
     cap: gV('edit-gal-cap'),
     hair: gV('edit-gal-hair'),
+    readyCode: gV('edit-gal-ready-profile'),
     baseColor: gV('edit-gal-base-color'),
     paintedBaseColor: gV('edit-gal-painted-base-color'),
     highlightColor: gV('edit-gal-highlight-color'),
@@ -5910,6 +5954,135 @@ function updateAddonPriceLabels() {
     if (p[k] != null) el.textContent = '+₪' + Number(p[k]).toLocaleString('he-IL');
   });
 }
+
+
+/* ─────────────────────────────────────────────
+   ניהול דינמי של פרטי פאה + קודי פאות מוכנות
+   נשמר בלוקאל סטורג' כדי לא לפגוע בהזמנות קיימות
+───────────────────────────────────────────── */
+var PARAM_STORE_KEY = 'mirchoron_wig_params_v1';
+var READY_STORE_KEY = 'mirchoron_ready_wig_profiles_v1';
+
+var PARAM_DEFS = {
+  wigTypes: { label:'סוגי פאות', ids:['wig-type','gal-type','edit-gal-type'], placeholder:'בחרי', values:[
+    {value:'silk top', label:'פאת סקין'}, {value:'lace top', label:'פאת טופ לייס'}, {value:'ponytail', label:'פאת קוקו (תוספת 50$)'}, {value:'band fall', label:'פאת סרט'}
+  ]},
+  lengths: { label:'אורכים', ids:['gal-length','edit-gal-length'], placeholder:'בחרי', values:['10"','12"','14"','16"','18"','20"','22"','24"','26"','28"','30"']},
+  structures: { label:'מבנה / דירוג', ids:['wig-structure','gal-structure','edit-gal-structure'], placeholder:'בחרי', values:[{value:'tiny',label:'דירוג קל'},{value:'no layer',label:'ללא דירוג'}]},
+  caps: { label:'מידות רשת', ids:['wig-cap','gal-cap','edit-gal-cap'], placeholder:'בחרי', values:['XS','S','M','L','XL']},
+  hairTypes: { label:'סוג תלתול / שיער', ids:['wig-hair','gal-hair','edit-gal-hair'], placeholder:'בחרי', values:['straight','curly','stronger wave','slight wave','slight wave from the jaw','bottom wave','very slight wave','bottom very slight wave']},
+  baseColors: { label:'צבע בסיס', ids:['wig-base-color','gal-base-color','edit-gal-base-color'], placeholder:'בחרי/השאירי פתוח', values:['1B#','2#','2/4','4#','4/6','6#','6/8']},
+  paintedBaseColors: { label:'צבע בסיס צבוע', ids:['wig-painted-base-color','gal-painted-base-color','edit-gal-painted-base-color'], placeholder:'בחרי/השאירי פתוח', values:['1B','2','4','6','8','10','12','14','18']},
+  highlightColors: { label:'צבע גוונים / Baby Hair', ids:['wig-highlight-color','wig-highlight-local','wig-baby-factory','wig-baby-local','gal-highlight-color','edit-gal-highlight-color'], placeholder:'בחרי/השאירי פתוח', values:['BB1','BB2','BB3','BB4','BB5','BB6','BB7','BB8','BB9','BB10','1B','2','4','6','8','10','12','14','18']},
+  highlightStyles: { label:'סגנון צביעה / גוונים', ids:['wig-highlight-style','gal-highlight-style','edit-gal-highlight-style'], placeholder:'בחרי/נעדכן בהמשך', values:['עדין','בולט','מסגרת פנים','בליאז׳','אומברה','סומברה','צבע אחיד','אחר - בהערות']},
+  highlightPct: { label:'אחוזי גוונים', ids:['wig-highlight-pct'], placeholder:'בחרי/לא רלוונטי', values:['10%','20%','30%','40%','50%','60%','70%','80%','90%','100%']},
+  parts: { label:'שביל צד', ids:['wig-part'], placeholder:'ללא שביל / לא רלוונטי', values:[{value:'Path to the right, hair to the left',label:'שביל בצד ימין — שיער לכיוון שמאל'},{value:'Path to the left, hair to the right',label:'שביל בצד שמאל — שיער לכיוון ימין'}]}
+};
+function cloneDefaultParamValues(key){ return (PARAM_DEFS[key].values||[]).map(function(v){ return typeof v==='object'?{value:v.value,label:v.label}:v; }); }
+function getWigParams(){
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(PARAM_STORE_KEY)||'{}'); } catch(e) { saved = {}; }
+  Object.keys(PARAM_DEFS).forEach(function(k){ if (!saved[k]) saved[k] = cloneDefaultParamValues(k); });
+  return saved;
+}
+function saveWigParams(p){ localStorage.setItem(PARAM_STORE_KEY, JSON.stringify(p)); }
+function getItemValue(it){ return typeof it==='object' ? it.value : it; }
+function getItemLabel(it){ return typeof it==='object' ? it.label : it; }
+function fillSelectDynamic(id, key){
+  var el = document.getElementById(id); if (!el || !PARAM_DEFS[key]) return;
+  var current = el.value;
+  var def = PARAM_DEFS[key];
+  var vals = getWigParams()[key] || [];
+  el.innerHTML = '';
+  var opt = document.createElement('option'); opt.value=''; opt.textContent=def.placeholder||'בחרי'; el.appendChild(opt);
+  vals.forEach(function(it){ var o=document.createElement('option'); o.value=getItemValue(it); o.textContent=getItemLabel(it); el.appendChild(o); });
+  if ([].some.call(el.options, function(o){ return o.value===current; })) el.value=current;
+}
+function applyDynamicWigParams(){
+  Object.keys(PARAM_DEFS).forEach(function(k){ (PARAM_DEFS[k].ids||[]).forEach(function(id){ fillSelectDynamic(id,k); }); });
+  renderReadyProfileSelects();
+}
+function initParamAdmin(){
+  var sel = document.getElementById('param-kind'); if (!sel) return;
+  if (!sel.options.length) {
+    Object.keys(PARAM_DEFS).forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=PARAM_DEFS[k].label; sel.appendChild(o); });
+  }
+  applyDynamicWigParams();
+}
+function renderParamAdmin(){
+  var kind = (document.getElementById('param-kind')||{}).value || 'baseColors';
+  var box = document.getElementById('param-values-list'); if (!box || !PARAM_DEFS[kind]) return;
+  var vals = getWigParams()[kind] || [];
+  box.innerHTML = '<div class="param-admin-title">'+PARAM_DEFS[kind].label+'</div>' + vals.map(function(v,i){
+    return '<span class="param-chip">'+esc(getItemLabel(v))+' <button onclick="removeParamValue(\''+kind+'\','+i+')">×</button></span>';
+  }).join('') + (vals.length?'':'<div style="font-size:13px;color:var(--muted)">אין ערכים ברשימה.</div>');
+}
+function addParamValue(){
+  var kind = document.getElementById('param-kind').value;
+  var inp = document.getElementById('param-new-value');
+  var val = (inp.value||'').trim();
+  if (!kind || !val) { toast('צריך לבחור רשימה ולהקליד ערך'); return; }
+  var p = getWigParams();
+  var exists = (p[kind]||[]).some(function(x){ return getItemValue(x)===val || getItemLabel(x)===val; });
+  if (exists) { toast('הערך כבר קיים'); return; }
+  p[kind].push(val);
+  saveWigParams(p); inp.value='';
+  applyDynamicWigParams(); renderParamAdmin(); renderReadyProfiles(); toast('נוסף בהצלחה');
+}
+function removeParamValue(kind, idx){
+  var p = getWigParams();
+  if (!p[kind]) return;
+  p[kind].splice(idx,1); saveWigParams(p);
+  applyDynamicWigParams(); renderParamAdmin(); renderReadyProfiles(); toast('הוסר מהרשימה');
+}
+function resetParamKind(){
+  var kind = document.getElementById('param-kind').value; if (!kind) return;
+  var p = getWigParams(); p[kind] = cloneDefaultParamValues(kind); saveWigParams(p);
+  applyDynamicWigParams(); renderParamAdmin(); renderReadyProfiles(); toast('הרשימה אופסה');
+}
+function getReadyProfiles(){ try { return JSON.parse(localStorage.getItem(READY_STORE_KEY)||'[]'); } catch(e) { return []; } }
+function saveReadyProfiles(arr){ localStorage.setItem(READY_STORE_KEY, JSON.stringify(arr||[])); }
+function normalizeReadyProfile(p){
+  if (typeof p === 'string') return {name:p};
+  p = p || {};
+  return {name: String(p.name || '').trim()};
+}
+function renderReadyProfileSelects(){
+  var profiles = getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; });
+  ['wig-ready-profile','gal-ready-profile','edit-gal-ready-profile'].forEach(function(id){
+    var el = document.getElementById(id); if (!el) return;
+    var cur = el.value; el.innerHTML='';
+    var o=document.createElement('option'); o.value=''; o.textContent='בחרי קוד יצרן / לא רלוונטי'; el.appendChild(o);
+    profiles.forEach(function(p){ var op=document.createElement('option'); op.value=p.name; op.textContent=p.name; el.appendChild(op); });
+    if ([].some.call(el.options,function(x){return x.value===cur;})) el.value=cur;
+  });
+}
+function saveReadyProfile(){
+  var name=(document.getElementById('ready-name').value||'').trim();
+  if (!name) { toast('צריך להקליד קוד / שם צבע יצרן'); return; }
+  var arr=getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; });
+  var exists=arr.some(function(x){ return x.name.toLowerCase()===name.toLowerCase(); });
+  if (!exists) arr.push({name:name});
+  saveReadyProfiles(arr);
+  var el=document.getElementById('ready-name'); if(el) el.value='';
+  renderReadyProfileSelects(); renderReadyProfiles(); toast(exists ? 'הקוד כבר קיים' : 'קוד פאה מוכנה נשמר');
+}
+function deleteReadyProfile(i){ var arr=getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; }); arr.splice(i,1); saveReadyProfiles(arr); renderReadyProfileSelects(); renderReadyProfiles(); toast('הקוד נמחק'); }
+function duplicateReadyProfile(i){ var arr=getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; }); var p=arr[i]; if(!p)return; var cp={name:p.name+' - עותק'}; arr.push(cp); saveReadyProfiles(arr); renderReadyProfileSelects(); renderReadyProfiles(); toast('הקוד שוכפל'); }
+function editReadyProfile(i){
+  var p=getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; })[i]; if(!p)return;
+  setFieldVal('ready-name',p.name);
+  toast('הקוד נטען לעריכה');
+}
+function renderReadyProfiles(){
+  var box=document.getElementById('ready-profiles-list'); if(!box)return;
+  var arr=getReadyProfiles().map(normalizeReadyProfile).filter(function(p){ return !!p.name; });
+  box.innerHTML = arr.length ? arr.map(function(p,i){
+    return '<div class="ready-profile-card"><b>'+esc(p.name)+'</b><br><span style="color:var(--muted)">קוד צבע / פאה מוכנה של היצרן</span><div style="display:flex;gap:6px;margin-top:8px"><button class="btn" onclick="editReadyProfile('+i+')" style="flex:1;padding:7px">עריכה</button><button class="btn" onclick="duplicateReadyProfile('+i+')" style="flex:1;padding:7px">שכפול</button><button class="btn btn-red" onclick="deleteReadyProfile('+i+')" style="flex:1;padding:7px">מחיקה</button></div></div>';
+  }).join('') : '<div style="font-size:13px;color:var(--muted)">עדיין אין קודים. הוסיפי קוד ראשון, לדוגמה DR7.</div>';
+}
+
+setTimeout(applyDynamicWigParams, 0);
 
 loadAddonPriceFields();
 updateAddonPriceLabels();
