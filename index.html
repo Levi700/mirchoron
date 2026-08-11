@@ -606,13 +606,14 @@ button.tab-btn.active{
         <input type="text" id="inspo-note" placeholder="מה לקחת מהתמונה? (תלתול, סגנון צביעה...)" style="width:100%;display:none">
       </div>
 
-      <div class="order-actions"><button class="btn btn-blue" onclick="addToCartAndProceed()">🛒 הוסף לעגלה והמשך לפרטי לקוחה</button><button class="btn" onclick="closeOrderModal()">ביטול</button></div>
+      <div class="order-actions"><button class="btn btn-blue" onclick="addToCartAndProceed()">המשך לפרטי לקוחה</button><button class="btn" onclick="closeOrderModal()">ביטול</button></div>
     </div>
 
     <div class="order-screen" id="order-step-2">
       <div class="field"><label>שם מלא</label><input type="text" id="ord-name" placeholder="שם הלקוחה"></div>
       <div class="field"><label>טלפון</label><input type="tel" id="ord-phone" placeholder="050-0000000"></div>
       <div class="field"><label>עיר</label><input type="text" id="ord-city" placeholder="עיר מגורים"></div>
+      <div class="field"><label>תאריך רכישה</label><input type="date" id="ord-purchase-date"><div class="lock-note">הדוחות וההכנסה החודשית יחושבו לפי התאריך הזה, גם אם ההזמנה הוזנה למערכת מאוחר יותר.</div></div>
       <div class="field"><label>ימי עסקים להכנה</label><input type="number" id="ord-days" min="1" placeholder="לדוגמה: 45"></div>
       <div class="field"><label>הערות כלליות</label><input type="text" id="ord-notes" placeholder="הערות נוספות (אופציונלי)"></div>
       <div class="order-actions"><button class="btn" onclick="goOrderStep(1)">חזרה</button><button class="btn btn-blue" onclick="goOrderStep(3)">המשך לתקנון</button></div>
@@ -2329,7 +2330,8 @@ function openOrderFromGallery(){
     wig: p.name || 'פאה מהגלריה',
     col: (priceInfo.catTitle ? priceInfo.catTitle + ' — ' : '') + (priceInfo.col || 'מהגלריה'),
     price: priceInfo.price || 0,
-    date: new Date().toLocaleDateString('he-IL'),
+    purchaseDate: localTodayISO(),
+    date: formatISODateHe(localTodayISO()),
     galleryOrder: true,
     galleryIdx: lbIdx,
     galleryDetails: {name:p.name||'',type:p.type||'',color:p.color||'',style:p.style||'',length:p.length||'',priceSource:priceInfo.catTitle||''}
@@ -2342,6 +2344,7 @@ function openOrderFromGallery(){
     gbox.innerHTML='<div class="gallery-order-preview">'+(p.url?'<img src="'+p.url+'">':'')+'<div><div style="font-weight:800">'+esc(p.name||'')+'</div><div style="font-size:12px;color:var(--muted);line-height:1.5">הנתונים האלו הגיעו מהגלריה ונשמרים אוטומטית בהזמנה:<br>'+esc([p.type,p.color,p.style,p.length].filter(Boolean).join(' · '))+'</div></div></div><div class="gallery-lock-box">הפאה נבחרה מהגלריה. הנתונים מולאו אוטומטית, אבל אפשר לשנות או להשלים כל שדה לפני השליחה ליצרן.</div>';
   }
   ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-highlight-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  setPurchaseDateInputFromOrder(pendingOrder);
   applyClientToOrder();
   setSelectIfOption('wig-hair', p.style);
   setSelectIfOption('wig-base-color', p.color);
@@ -2687,6 +2690,66 @@ function resetTermsText() {
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function val(id){ var el=document.getElementById(id); return el ? el.value.trim() : ''; }
 
+// ── תאריך רכישה: תאימות מלאה להזמנות ישנות ──
+// לא משנים מזהי הזמנות או מפתחות localStorage. הזמנה חדשה מקבלת purchaseDate,
+// ובהזמנות ישנות שאין להן את השדה משתמשים בתאריך הישן/ב-id כגיבוי.
+function localTodayISO(){
+  var d=new Date();
+  var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function legacyDateToISO(v){
+  v=String(v||'').trim();
+  if(!v) return '';
+  var m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+  m=v.match(/^(\d{1,2})[.\/\-](\d{1,2})[.\/\-](\d{4})/);
+  if(m) return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  return '';
+}
+function orderPurchaseDateISO(o){
+  o=o||{};
+  var iso=legacyDateToISO(o.purchaseDate);
+  if(iso) return iso;
+  iso=legacyDateToISO(o.date);
+  if(iso) return iso;
+  var idNum=Number(o.id);
+  if(isFinite(idNum) && idNum>0){
+    var d=new Date(idNum);
+    if(!isNaN(d.getTime())){
+      var y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+      return y+'-'+m+'-'+day;
+    }
+  }
+  return '';
+}
+function formatISODateHe(iso){
+  var m=String(iso||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return String(iso||'');
+  return String(Number(m[3]))+'.'+String(Number(m[2]))+'.'+m[1];
+}
+function displayPurchaseDate(o){
+  var iso=orderPurchaseDateISO(o);
+  return iso ? formatISODateHe(iso) : String((o&&o.date)||'');
+}
+function configurePurchaseDateInput(){
+  var el=document.getElementById('ord-purchase-date');
+  if(!el) return;
+  var today=localTodayISO();
+  // תאריך רכישה לעולם לא יכול להיות עתידי. max נקבע לפי התאריך המקומי בטאבלט.
+  el.max=today;
+  if(!el.value) el.value=today;
+  if(el.value>today) el.value=today;
+}
+function setPurchaseDateInputFromOrder(o){
+  var el=document.getElementById('ord-purchase-date');
+  if(!el) return;
+  el.max=localTodayISO();
+  el.value=orderPurchaseDateISO(o)||localTodayISO();
+  if(el.value>el.max) el.value=el.max;
+}
+
+
 function stripOrderImages(arr) {
   return arr.map(function(o) {
     var c = Object.assign({}, o);
@@ -2765,12 +2828,13 @@ function openOrderModal(idx) {
   setGalleryLockedFields(false);
   updateHighlightStyleByCatKey(item.catKey);
   var gbox=document.getElementById('gallery-order-box'); if(gbox){ gbox.style.display='none'; gbox.innerHTML=''; }
-  pendingOrder = { wig: item.wig, col: item.col, price: item.price, date: new Date().toLocaleDateString('he-IL') };
+  pendingOrder = { wig: item.wig, col: item.col, price: item.price, purchaseDate: localTodayISO(), date: formatISODateHe(localTodayISO()) };
   var rateNow = usdRate || lastRate;
   document.getElementById('order-wig-info').innerHTML =
     '<strong>' + esc(item.wig) + '</strong> — ' + esc(item.col) +
     (rateNow ? '<br><span style="font-size:12px;color:var(--muted)">שער דולר עכשיו: ₪' + rateNow.toFixed(3) + '</span>' : '');
   ['wig-type','wig-length','wig-cap','wig-structure','wig-hair','wig-base-color','wig-painted-base-color','wig-highlight-color','wig-highlight-style','wig-part','wig-baby-factory','wig-baby-local','wig-highlight-local','wig-notes','ord-name','ord-phone','ord-city','ord-days','ord-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  setPurchaseDateInputFromOrder(pendingOrder);
   applyClientToOrder();
   setOrderFixedFields('price', item);
   document.getElementById('ord-price').value = item.price;
@@ -2905,7 +2969,13 @@ function collectOrderData(){
   var o = Object.assign({}, pendingOrder || {});
   if (!isNaN(editedPrice) && editedPrice > 0) o.price = editedPrice;
   o.name = val('ord-name'); o.phone = val('ord-phone'); o.city = val('ord-city');
-  o.pay = 'טרם נקבע'; // נקבע אוטומטית במסך התשלום בסוף התהליך o.notes = val('ord-notes'); o.days = val('ord-days');
+  var purchaseDate = val('ord-purchase-date') || orderPurchaseDateISO(o) || localTodayISO();
+  // הגנה גם במקרה של הקלדה ידנית/דפדפן חריג: לא שומרים תאריך עתידי.
+  if(purchaseDate > localTodayISO()) purchaseDate = localTodayISO();
+  o.purchaseDate = purchaseDate;
+  o.date = formatISODateHe(purchaseDate);
+  o.pay = 'טרם נקבע'; // נקבע אוטומטית במסך התשלום בסוף התהליך
+  o.notes = val('ord-notes'); o.days = val('ord-days');
   o.wigDetails = { wigType:val('wig-type'), length:val('wig-length'), cap:val('wig-cap'), structure:val('wig-structure'), hair:val('wig-hair'), readyCode:val('wig-ready-profile'), baseColor:val('wig-base-color'), paintedBaseColor:val('wig-painted-base-color'), highlightColor:val('wig-highlight-color'), highlightStyle:val('wig-highlight-style'), highlightPct:val('wig-highlight-pct'), part:val('wig-part'), babyFactory:val('wig-baby-factory'), babyLocal:val('wig-baby-local'), highlightLocal:val('wig-highlight-local'), notes:val('wig-notes') };
   o.inspoIdx   = inspoSelected ? inspoSelected.idx : null;
   o.inspoNote  = val('inspo-note');
@@ -2946,7 +3016,7 @@ function buildFullCustomerOrderText(o){
   var d=o.wigDetails||{};
   return 'טופס הזמנה מלא - רחלי קאשי\n' +
     '-------------------------\n' +
-    'תאריך: ' + (o.createdAt || o.date || '') + '\n' +
+    'תאריך רכישה: ' + displayPurchaseDate(o) + '\n' +
     'שם לקוחה: ' + (o.name||'') + '\n' +
     'טלפון: ' + (o.phone||'') + '\n' +
     'עיר: ' + (o.city||'') + '\n' +
@@ -2996,7 +3066,7 @@ function buildSignedTermsImageForOrder(o){
     var ctx=canvas.getContext('2d'); var right=1140, y=70, maxW=1040;
     ctx.direction='rtl'; ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle='#111827'; ctx.font='700 42px Arial'; ctx.fillText('אחריות והצהרת לקוחה', right, y); y+=52;
-    ctx.font='400 24px Arial'; ctx.fillStyle='#374151'; ctx.fillText('רחלי קאשי פאות | תאריך: '+(o.createdAt||o.date||''), right, y); y+=48;
+    ctx.font='400 24px Arial'; ctx.fillStyle='#374151'; ctx.fillText('רחלי קאשי פאות | תאריך רכישה: '+displayPurchaseDate(o), right, y); y+=48;
     ctx.fillStyle='#111827'; ctx.font='700 27px Arial'; ctx.fillText('פרטי לקוחה', right, y); y+=38;
     ctx.font='400 23px Arial';
     var orderInfo='שם: '+(o.name||'');
@@ -3024,7 +3094,7 @@ function buildSignedTermsImageForOrderAsync(o){
       ctx.direction='rtl'; ctx.textAlign='right'; ctx.textBaseline='top';
       ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.fillStyle='#111827'; ctx.font='700 42px Arial'; ctx.fillText('אחריות והצהרת לקוחה', right, y); y+=52;
-      ctx.font='400 24px Arial'; ctx.fillStyle='#374151'; ctx.fillText('רחלי קאשי פאות | תאריך: '+(o.createdAt||o.date||''), right, y); y+=48;
+      ctx.font='400 24px Arial'; ctx.fillStyle='#374151'; ctx.fillText('רחלי קאשי פאות | תאריך רכישה: '+displayPurchaseDate(o), right, y); y+=48;
       ctx.fillStyle='#111827'; ctx.font='700 27px Arial'; ctx.fillText('פרטי לקוחה', right, y); y+=38;
       ctx.font='400 23px Arial';
       var orderInfo='שם: '+(o.name||'');
@@ -3137,7 +3207,7 @@ function buildManufacturerImageForOrderAsync(o){
       ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
       var right=1140, y=70, maxW=1040;
       ctx.fillStyle='#111827'; ctx.font='700 44px Arial'; ctx.fillText('Manufacturer Order - Racheli Kashi', right, y); y+=58;
-      ctx.font='400 24px Arial'; ctx.fillStyle='#4b5563'; ctx.fillText('תאריך: '+(o.createdAt||o.date||''), right, y); y+=44;
+      ctx.font='400 24px Arial'; ctx.fillStyle='#4b5563'; ctx.fillText('תאריך רכישה: '+displayPurchaseDate(o), right, y); y+=44;
       var d=o.wigDetails||{}, gd=o.galleryDetails||{};
       var info='Customer name: '+(o.name||'')+'\nWig model: '+manufacturerWigName(o)+'\nType / category: '+manufacturerCategory(o)+'\n'+(o.galleryOrder?'Source: gallery | '+manufacturerGalleryDetails(gd)+'\n':'')+'\nProduction details:\nCap size: '+(d.cap||'')+'\nStructure / layers: '+translateManufacturerValue(d.structure||'')+'\nCurl type: '+translateManufacturerValue(d.hair||'')+'\nBase color: '+translateManufacturerValue(d.baseColor||'')+'\nPainted base color: '+translateManufacturerValue(d.paintedBaseColor||'')+'\nHighlights color: '+translateManufacturerValue(d.highlightColor||'')+'\nHighlights style: '+translateManufacturerValue(d.highlightStyle||'')+'\nHighlights percentage: '+(d.highlightPct||'')+'\nProduction notes: '+(d.notes||'')+(o.inspoNote?'\nInspiration note: '+o.inspoNote:'');
       ctx.fillStyle='#111827'; ctx.font='400 28px Arial';
@@ -3448,7 +3518,7 @@ function openSignedTermsPdf(){
   var sig = getSignatureData();
   var wig = pendingOrder || {};
   var termsHtml = (document.getElementById('terms-box').textContent || TERMS_TEXT).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  var html = '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>תקנון חתום</title><style>body{font-family:Arial,sans-serif;direction:rtl;padding:28px;color:#111;line-height:1.55}.box{border:1px solid #ddd;border-radius:12px;padding:18px;margin:14px 0}h1{font-size:26px;margin:0 0 8px}.meta{color:#555}.sig{max-width:420px;border:1px solid #ddd;border-radius:8px;background:#fff}@media print{button{display:none}body{padding:0}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin-bottom:12px">שמירה כ-PDF / הדפסה</button><h1>אחריות והצהרת לקוחה</h1><div class="meta">רחלי קאשי פאות | תאריך: '+ new Date().toLocaleDateString('he-IL') +'</div><div class="box"><b>שם לקוחה:</b> '+(val('ord-name')||'')+'</div><div class="box">'+termsHtml+'</div><div class="box"><b>חתימת לקוחה:</b><br><img class="sig" src="'+sig+'"></div><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
+  var html = '<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>תקנון חתום</title><style>body{font-family:Arial,sans-serif;direction:rtl;padding:28px;color:#111;line-height:1.55}.box{border:1px solid #ddd;border-radius:12px;padding:18px;margin:14px 0}h1{font-size:26px;margin:0 0 8px}.meta{color:#555}.sig{max-width:420px;border:1px solid #ddd;border-radius:8px;background:#fff}@media print{button{display:none}body{padding:0}}</style></head><body><button onclick="window.print()" style="padding:10px 18px;margin-bottom:12px">שמירה כ-PDF / הדפסה</button><h1>אחריות והצהרת לקוחה</h1><div class="meta">רחלי קאשי פאות | תאריך רכישה: '+ (val('ord-purchase-date') ? formatISODateHe(val('ord-purchase-date')) : new Date().toLocaleDateString('he-IL')) +'</div><div class="box"><b>שם לקוחה:</b> '+(val('ord-name')||'')+'</div><div class="box">'+termsHtml+'</div><div class="box"><b>חתימת לקוחה:</b><br><img class="sig" src="'+sig+'"></div><script>setTimeout(function(){window.print()},600)<\/script></body></html>';
   var w = window.open('', '_blank');
   if (!w) { toast('הדפדפן חסם פתיחת חלון'); return; }
   w.document.open(); w.document.write(html); w.document.close();
@@ -3503,7 +3573,8 @@ function editDraftOrder(id) {
     setV('wig-notes', d.notes);
     setV('ord-name', order.name); setV('ord-phone', order.phone);
     setV('ord-city', order.city); setV('ord-email', order.email);
-    setV('ord-notes', order.orderNotes);
+    setPurchaseDateInputFromOrder(order);
+    setV('ord-notes', order.orderNotes || order.notes);
     if (order.price) { var pe=document.getElementById('ord-price'); if(pe) pe.value=order.price; }
   }, 100);
 }
@@ -3512,9 +3583,28 @@ function saveOrder() {
   if (!pendingOrder) return;
   if (!validateCustomerStep()) return;
 
+  // הגנה מטאפ כפול בטאבלט: אותה לחיצה לא יכולה ליצור שתי רכישות.
+  if (window.__saveOrderBusy) return;
+  window.__saveOrderBusy = true;
+
   var order = collectOrderData();
-  order.id = Date.now();
-  order.createdAt = new Date().toLocaleString('he-IL');
+  var editingDraftId = pendingOrder && pendingOrder.draftId ? pendingOrder.draftId : null;
+  var existingDraftIdx = -1;
+  var oldDraft = null;
+
+  if (editingDraftId) {
+    existingDraftIdx = orders.findIndex(function(o){ return String(o.id) === String(editingDraftId); });
+    if (existingDraftIdx !== -1) oldDraft = orders[existingDraftIdx];
+    order.id = editingDraftId;
+    // שומרים את תאריך יצירת הרשומה המקורי; תאריך הרכישה נשמר בנפרד ב-purchaseDate.
+    order.createdAt = (oldDraft && oldDraft.createdAt) ? oldDraft.createdAt : new Date().toLocaleString('he-IL');
+    order.isDraft = false;
+  } else {
+    order.id = Date.now();
+    order.createdAt = new Date().toLocaleString('he-IL');
+  }
+
+  delete order.draftId;
   order.status = 'נשמרה ונשלחה ליצרן';
   order.manufacturerImage = '';
 
@@ -3522,8 +3612,10 @@ function saveOrder() {
   try { order.fullOrderText = buildFullCustomerOrderText(order); } catch(e) { order.fullOrderText = ''; }
   try { order.signedTermsImage = buildSignedTermsImageForOrder(order); } catch(e) { order.signedTermsImage = ''; }
   try { order.termsApproved = !!(document.getElementById('ord-terms-ok')||{}).checked; } catch(e) {}
-  order.archive = { savedAt: order.createdAt, manufacturerSent: true };
+  order.archive = { savedAt: new Date().toLocaleString('he-IL'), manufacturerSent: true };
 
+  // בעריכת טיוטה מחליפים אותה במקום ליצור רשומה נוספת.
+  if (existingDraftIdx !== -1) orders.splice(existingDraftIdx, 1);
   orders.unshift(order);
   try { saveOrders(); } catch(e) {}
   try { renderCRM(); } catch(e) {}
@@ -3538,26 +3630,31 @@ function saveOrder() {
     try {
       buildManufacturerImageForOrderAsync(order).then(function(mImg){
         if(mImg) {
-          var idx = orders.findIndex(function(o){ return o.id === order.id; });
+          var idx = orders.findIndex(function(o){ return String(o.id) === String(order.id); });
           if(idx !== -1) { orders[idx].manufacturerImage = mImg; saveOrders(); }
         }
         shareManufacturerPackageFromOrder(order);
       }).catch(function(){ shareManufacturerPackageFromOrder(order); });
     } catch(e) { try { shareManufacturerPackageFromOrder(order); } catch(e2) {} }
   }, 500);
+
+  // משחררים את הנעילה רק אחרי שהמסך כבר הוחלף, כדי למנוע לחיצה כפולה מהירה.
+  setTimeout(function(){ window.__saveOrderBusy = false; }, 1200);
 }
 
 
 function renderCRM() {
   var el = document.getElementById('page-crm');
 
-  // סיכום חודשי
+  // סיכום חודשי — רק רכישות אמיתיות, לא טיוטות.
+  var completedOrders = orders.filter(function(o){ return !(o && (o.isDraft || o.status === 'טיוטה')); });
   var now = new Date();
-  var thisMonth = orders.filter(function(o){
-    var d = new Date(o.id);
-    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  var monthKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var thisMonth = completedOrders.filter(function(o){
+    var pd = orderPurchaseDateISO(o);
+    return pd && pd.slice(0,7)===monthKey;
   });
-  var totalMonth = thisMonth.reduce(function(s,o){ return s+(o.price||0); }, 0);
+  var totalMonth = thisMonth.reduce(function(s,o){ return s+(Number(o.price)||0); }, 0);
 
   var searchVal = (document.getElementById('crm-search-input') ? document.getElementById('crm-search-input').value : '').toLowerCase();
   var filtered = orders.filter(function(o){
@@ -3568,9 +3665,9 @@ function renderCRM() {
   });
 
   var html = '<div class="crm-summary">' +
-    '<div class="crm-stat"><div class="crm-stat-num">'+orders.length+'</div><div class="crm-stat-lbl">סה"כ רכישות</div></div>' +
+    '<div class="crm-stat"><div class="crm-stat-num">'+completedOrders.length+'</div><div class="crm-stat-lbl">סה"כ רכישות</div></div>' +
     '<div class="crm-stat"><div class="crm-stat-num">'+thisMonth.length+'</div><div class="crm-stat-lbl">החודש</div></div>' +
-    '<div class="crm-stat"><div class="crm-stat-num">&#x20AA;'+Math.round(totalMonth/1000)+'K</div><div class="crm-stat-lbl">הכנסה החודש</div></div>' +
+    '<div class="crm-stat"><div class="crm-stat-num">&#x20AA;'+Math.round(totalMonth).toLocaleString('he-IL')+'</div><div class="crm-stat-lbl">הכנסה החודש</div></div>' +
     '</div>' +
     '<input class="crm-search" id="crm-search-input" type="search" placeholder="חיפוש לפי שם / טלפון / פאה..." oninput="clearTimeout(window.__crmSearchTimer);window.__crmSearchTimer=setTimeout(renderCRM,180)" value="'+esc(searchVal)+'">' ;
 
@@ -3585,7 +3682,7 @@ function renderCRM() {
           (o.phone?'<span>&#x1F4F1; '+esc(o.phone)+'</span>':'')+
           (o.city?'<span>&#x1F4CD; '+esc(o.city)+'</span>':'')+
           '<span>&#x1F4B3; '+esc(o.pay)+'</span>'+
-          '<span>'+esc(o.date)+'</span>'+
+          '<span>'+esc(displayPurchaseDate(o))+'</span>'+
         '</div>' +
       '</div>';
     });
@@ -3639,7 +3736,8 @@ function openCustomer(id) {
         '<table style="width:100%;font-size:12px;margin-top:6px;border-collapse:collapse"><tr style="color:var(--muted)"><th style="text-align:right;padding:3px 6px">סוג</th><th>סכום</th><th>תאריך</th><th>סטטוס</th></tr>'+rows+'</table></div>';
     })() : '') +
     (o.rateUsed?'<div>&#x1F4B1; שער דולר: ₪'+o.rateUsed.toFixed(3)+'</div>':'')+
-    '<div>&#x1F4C5; '+esc(o.createdAt||o.date||'')+'</div>'+
+    '<div>&#x1F4C5; <b>תאריך רכישה:</b> '+esc(displayPurchaseDate(o))+'</div>'+
+    (o.createdAt && displayPurchaseDate(o)!==o.createdAt ? '<div style="font-size:12px;color:var(--muted)">הוזן במערכת: '+esc(o.createdAt)+'</div>' : '')+
     renderAllWigDetails()+
     '<div class="customer-docs"><h4>מסמכים והזמנות</h4><div class="doc-grid">'+
       '<button class="btn" onclick="openOrderForm('+id+')">צפייה בטופס מלא</button>'+ 
@@ -3731,16 +3829,18 @@ function applyFontSize(val, fromNum) {
 
 
 function renderAdminCustomers() {
+  var completedOrders = orders.filter(function(o){ return !(o && (o.isDraft || o.status === 'טיוטה')); });
   var now = new Date();
-  var thisMonth = orders.filter(function(o){
-    var d = new Date(o.id);
-    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  var monthKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var thisMonth = completedOrders.filter(function(o){
+    var pd = orderPurchaseDateISO(o);
+    return pd && pd.slice(0,7)===monthKey;
   });
-  var totalMonth = thisMonth.reduce(function(s,o){ return s+(o.price||0); }, 0);
+  var totalMonth = thisMonth.reduce(function(s,o){ return s+(Number(o.price)||0); }, 0);
 
   var sumEl = document.getElementById('adm-summary');
   if (sumEl) sumEl.innerHTML =
-    '<div class="crm-stat"><div class="crm-stat-num">'+orders.length+'</div><div class="crm-stat-lbl">סה"כ רכישות</div></div>' +
+    '<div class="crm-stat"><div class="crm-stat-num">'+completedOrders.length+'</div><div class="crm-stat-lbl">סה"כ רכישות</div></div>' +
     '<div class="crm-stat"><div class="crm-stat-num">'+thisMonth.length+'</div><div class="crm-stat-lbl">החודש</div></div>' +
     '<div class="crm-stat"><div class="crm-stat-num">&#x20AA;'+Math.round(totalMonth).toLocaleString('he-IL')+'</div><div class="crm-stat-lbl">הכנסה החודש</div></div>';
 
@@ -3773,7 +3873,7 @@ function renderAdminCustomers() {
         (o.phone?'<span>&#x1F4F1; '+esc(o.phone)+'</span>':'')+
         (o.city?'<span>&#x1F4CD; '+esc(o.city)+'</span>':'')+
         '<span>&#x1F4B3; '+esc(o.pay||'')+'</span>'+
-        '<span>'+esc(o.date||'')+'</span>'+
+        '<span>'+esc(displayPurchaseDate(o))+'</span>'+
       '</div>';
     if (o.isDraft) {
       var editBtn = document.createElement('button');
@@ -3796,20 +3896,20 @@ function renderAdminCustomers() {
 
 function openReportModal() {
   var now = new Date();
-  var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  document.getElementById('rep-from').value = firstDay.toISOString().split('T')[0];
-  document.getElementById('rep-to').value = now.toISOString().split('T')[0];
+  var firstDayISO = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-01';
+  document.getElementById('rep-from').value = firstDayISO;
+  document.getElementById('rep-to').value = localTodayISO();
   document.getElementById('report-preview').style.display = 'none';
   document.getElementById('report-modal').classList.add('open');
 }
 
 function getReportOrders() {
-  var from = new Date(document.getElementById('rep-from').value);
-  var to   = new Date(document.getElementById('rep-to').value);
-  to.setHours(23,59,59);
+  var from = document.getElementById('rep-from').value;
+  var to   = document.getElementById('rep-to').value;
   return orders.filter(function(o){
-    var d = new Date(o.id);
-    return d >= from && d <= to;
+    if (o && (o.isDraft || o.status === 'טיוטה')) return false;
+    var pd = orderPurchaseDateISO(o);
+    return !!pd && (!from || pd >= from) && (!to || pd <= to);
   });
 }
 
@@ -3833,16 +3933,59 @@ function exportReport(type) {
   var filtered = getReportOrders();
   var from  = document.getElementById('rep-from').value;
   var to    = document.getElementById('rep-to').value;
-  var title = 'דוח מכירות ' + from + ' עד ' + to;
-  var total = filtered.reduce(function(s,o){ return s+(o.price||0); }, 0);
+
+  if (!filtered.length) {
+    toast('אין רכישות בתקופה שבחרת');
+    return;
+  }
+
+  var safeFrom = from || 'התחלה';
+  var safeTo   = to || 'היום';
+  var title = 'דוח מכירות ' + safeFrom + ' עד ' + safeTo;
+  var total = filtered.reduce(function(s,o){ return s+(Number(o.price)||0); }, 0);
   var rate  = usdRate || lastRate || 0;
   var avg   = Math.round(total / Math.max(filtered.length, 1));
 
+  function h(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function filePart(v) {
+    return String(v || '').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,'_');
+  }
+
+  function downloadBlob(blob, filename) {
+    try {
+      // IE / Edge Legacy
+      if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+        return true;
+      }
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){
+        try { document.body.removeChild(a); } catch(e){}
+        try { URL.revokeObjectURL(url); } catch(e){}
+      }, 1200);
+      return true;
+    } catch(err) {
+      console.warn('downloadBlob failed', err);
+      return false;
+    }
+  }
+
   // wig stats
   var wigStats = {};
-  filtered.forEach(function(o){ wigStats[o.wig] = (wigStats[o.wig]||0) + 1; });
+  filtered.forEach(function(o){ var k=o.wig||'ללא שם'; wigStats[k] = (wigStats[k]||0) + 1; });
   var payStats = {};
-  filtered.forEach(function(o){ payStats[o.pay] = (payStats[o.pay]||0) + (o.price||0); });
+  filtered.forEach(function(o){ var k=o.pay||'לא צוין'; payStats[k] = (payStats[k]||0) + (Number(o.price)||0); });
 
   function priceDetail(o) {
     var lines = [];
@@ -3850,122 +3993,97 @@ function exportReport(type) {
     if (cfg.profit)     lines.push('רווח: ₪' + cfg.profit);
     if (cfg.vat)        lines.push('מע"מ: ' + cfg.vat + '%');
     if (cfg.ops)        lines.push('תפעול: ' + cfg.ops + '%');
-    if (rate)           lines.push('שער דולר: ₪' + rate.toFixed(3));
+    if (rate)           lines.push('שער דולר: ₪' + Number(rate).toFixed(3));
     return lines.join(' | ');
   }
 
   if (type === 'excel') {
-    var csv = '\uFEFF' + ['שם','טלפון','עיר','פאה','עמודה','מחיר סופי','עמלה ($)','רווח','מע"מ','תפעול (%)','שער דולר','תשלום','תאריך','הערות'].join(',') + '\n';
-    filtered.forEach(function(o){
-      csv += ['"'+(o.name||'')+'"','"'+(o.phone||'')+'"','"'+(o.city||'')+'"',
-        '"'+(o.wig||'')+'"','"'+(o.col||'')+'"',o.price||0,
-        cfg.commission,cfg.profit,cfg.vat,cfg.ops||0,rate?rate.toFixed(3):'',
-        '"'+(o.pay||'')+'"','"'+(o.date||'')+'"','"'+(o.notes||'')+'"'].join(',') + '\n';
-    });
-    csv += ',,,,,'+Math.round(total)+',,,,,,\u05e1\u05d4"\u05db,\n';
-    var b = new Blob([csv],{type:'text/csv;charset=utf-8'});
-    var a = document.createElement('a'); a.href=URL.createObjectURL(b);
-    a.download='דוח_'+from+'_עד_'+to+'.csv';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-
-  } else if (type === 'word') {
-    var tRows = filtered.map(function(o){
-      return '<tr style="border-bottom:1pt solid #eee">'+
-        '<td style="padding:5pt 4pt">'+o.name+'</td>'+
-        '<td style="padding:5pt 4pt">'+o.phone+'</td>'+
-        '<td style="padding:5pt 4pt">'+o.city+'</td>'+
-        '<td style="padding:5pt 4pt"><b>'+o.wig+'</b><br><span style="font-size:9pt;color:#666">'+o.col+'</span></td>'+
-        '<td style="padding:5pt 4pt;font-weight:bold">₪'+(o.price||0).toLocaleString('he-IL')+'</td>'+
-        '<td style="padding:5pt 4pt;font-size:9pt;color:#555">'+priceDetail(o)+'</td>'+
-        '<td style="padding:5pt 4pt">'+o.pay+'</td>'+
-        '<td style="padding:5pt 4pt">'+o.date+'</td>'+
-        '<td style="padding:5pt 4pt;font-size:9pt">'+( o.notes||'')+'</td>'+
-      '</tr>';
-    }).join('');
-    var wRows = Object.keys(wigStats).sort(function(a,b){return wigStats[b]-wigStats[a];}).map(function(w){
-      return '<tr><td style="padding:4pt 6pt">'+w+'</td><td style="padding:4pt 6pt;font-weight:bold;text-align:center">'+wigStats[w]+'</td></tr>';
-    }).join('');
-    var pRows = Object.keys(payStats).map(function(p){
-      return '<tr><td style="padding:4pt 6pt">'+p+'</td><td style="padding:4pt 6pt;font-weight:bold">₪'+Math.round(payStats[p]).toLocaleString('he-IL')+'</td></tr>';
-    }).join('');
-    var doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
-      '<head><meta charset="UTF-8"><style>'+
-      'body{font-family:Arial,sans-serif;direction:rtl;padding:20pt;font-size:11pt}'+
-      'h1{font-size:15pt;color:#1a1a1a}h2{font-size:12pt;color:#2563eb;margin-top:16pt;border-bottom:1pt solid #2563eb;padding-bottom:4pt}'+
-      'table{width:100%;border-collapse:collapse}th{background:#2563eb;color:#fff;padding:6pt 4pt;text-align:right;font-size:10pt}'+
-      '.sum{background:#fffbeb;border:1pt solid #fde68a;padding:10pt;margin:10pt 0}'+
-      '</style></head><body>'+
-      '<h1>'+title+'</h1>'+
-      '<div class="sum">'+
-        '<table style="width:auto"><tr>'+
-        '<td style="padding:4pt 20pt;text-align:center"><div style="font-size:18pt;font-weight:bold;color:#2563eb">'+filtered.length+'</div><div style="font-size:9pt">רכישות</div></td>'+
-        '<td style="padding:4pt 20pt;text-align:center"><div style="font-size:18pt;font-weight:bold;color:#16a34a">₪'+Math.round(total).toLocaleString('he-IL')+'</div><div style="font-size:9pt">סה"כ הכנסות</div></td>'+
-        '<td style="padding:4pt 20pt;text-align:center"><div style="font-size:18pt;font-weight:bold">₪'+avg.toLocaleString('he-IL')+'</div><div style="font-size:9pt">ערך מוצע</div></td>'+
-        '</tr></table>'+
-      '</div>'+
-      '<h2>פירוט רכישות</h2>'+
-      '<table><thead><tr>'+
-      '<th>שם</th><th>טלפון</th><th>עיר</th><th>פאה</th>'+
-      '<th>מחיר סופי</th><th>פירוט חישוב</th>'+
-      '<th>תשלום</th><th>תאריך</th><th>הערות</th>'+
-      '</tr></thead><tbody>'+tRows+'</tbody></table>'+
-      '<h2>פאות שנמכרו</h2>'+
-      '<table><thead><tr><th>פאה</th><th>כמות</th></tr></thead><tbody>'+wRows+'</tbody></table>'+
-      '<h2>הכנסות לפי אמצעי תשלום</h2>'+
-      '<table><thead><tr><th>אמצעי</th><th>סכום</th></tr></thead><tbody>'+pRows+'</tbody></table>'+
-      '</body></html>';
-    var b = new Blob(['﻿'+doc],{type:'application/msword;charset=utf-8'});
-    var a = document.createElement('a'); a.href=URL.createObjectURL(b);
-    a.download='דוח_'+from+'_עד_'+to+'.doc';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-
-  } else {
-    // HTML for print to PDF
-    var tRows2 = filtered.map(function(o){
+    // קובץ Excel מקומי, ללא ספרייה חיצונית. Excel פותח אותו ישירות כגיליון.
+    var rows = filtered.map(function(o){
       return '<tr>'+
-        '<td>'+o.name+'</td><td>'+o.phone+'</td><td>'+o.city+'</td>'+
-        '<td><b>'+o.wig+'</b><br><small style="color:#666">'+o.col+'</small></td>'+
-        '<td style="font-weight:bold">₪'+(o.price||0).toLocaleString('he-IL')+'</td>'+
-        '<td style="font-size:11px;color:#555">'+priceDetail(o)+'</td>'+
-        '<td>'+o.pay+'</td><td>'+o.date+'</td>'+
+        '<td class="txt">'+h(o.name)+'</td>'+
+        '<td class="txt">'+h(o.phone)+'</td>'+
+        '<td>'+h(o.city)+'</td>'+
+        '<td>'+h(o.wig)+'</td>'+
+        '<td>'+h(o.col)+'</td>'+
+        '<td class="num">'+(Number(o.price)||0)+'</td>'+
+        '<td class="num">'+(Number(cfg.commission)||0)+'</td>'+
+        '<td class="num">'+(Number(cfg.profit)||0)+'</td>'+
+        '<td class="num">'+(Number(cfg.vat)||0)+'</td>'+
+        '<td class="num">'+(Number(cfg.ops)||0)+'</td>'+
+        '<td class="num">'+(rate ? Number(rate).toFixed(3) : '')+'</td>'+
+        '<td>'+h(o.pay)+'</td>'+
+        '<td class="txt">'+h(displayPurchaseDate(o))+'</td>'+
+        '<td>'+h(o.notes)+'</td>'+
       '</tr>';
     }).join('');
-    var wRows2 = Object.keys(wigStats).sort(function(a,b){return wigStats[b]-wigStats[a];}).map(function(w){
-      return '<tr><td>'+w+'</td><td style="font-weight:bold;text-align:center">'+wigStats[w]+'</td></tr>';
-    }).join('');
-    var pRows2 = Object.keys(payStats).map(function(p){
-      return '<tr><td>'+p+'</td><td style="font-weight:bold">₪'+Math.round(payStats[p]).toLocaleString('he-IL')+'</td></tr>';
-    }).join('');
-    var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>'+title+'</title>'+
-      '<style>body{font-family:Arial,sans-serif;padding:20px;direction:rtl;font-size:12px}'+
-      'h1{font-size:16px}h2{font-size:13px;color:#2563eb;margin-top:18px;border-bottom:1px solid #2563eb;padding-bottom:3px}'+
-      'table{width:100%;border-collapse:collapse;margin-top:8px}'+
-      'th{background:#2563eb;color:#fff;padding:6px;text-align:right;font-size:11px}'+
-      'td{border-bottom:1px solid #eee;padding:6px;vertical-align:top}'+
-      '.sum{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:12px;margin-bottom:14px;display:flex;gap:24px}'+
-      '.si{text-align:center}.sn{font-size:20px;font-weight:bold;color:#2563eb}.sl{font-size:10px;color:#666}'+
-      '@media print{.np{display:none}}</style></head><body>'+
-      '<div class="np" style="margin-bottom:12px"><button onclick="window.print()" style="padding:8px 18px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer">הדפס / PDF</button></div>'+
-      '<h1>'+title+'</h1>'+
-      '<div class="sum">'+
-        '<div class="si"><div class="sn">'+filtered.length+'</div><div class="sl">רכישות</div></div>'+
-        '<div class="si"><div class="sn">₪'+Math.round(total).toLocaleString('he-IL')+'</div><div class="sl">סה"כ</div></div>'+
-        '<div class="si"><div class="sn">₪'+avg.toLocaleString('he-IL')+'</div><div class="sl">ערך מוצע</div></div>'+
-      '</div>'+
-      '<h2>פירוט רכישות</h2>'+
-      '<table><thead><tr><th>שם</th><th>טלפון</th><th>עיר</th><th>פאה</th><th>מחיר</th><th>פירוט</th><th>תשלום</th><th>תאריך</th></tr></thead><tbody>'+tRows2+'</tbody></table>'+
-      '<h2>פאות שנמכרו</h2>'+
-      '<table><thead><tr><th>פאה</th><th>כמות</th></tr></thead><tbody>'+wRows2+'</tbody></table>'+
-      '<h2>הכנסות לפי אמצעי תשלום</h2>'+
-      '<table><thead><tr><th>אמצעי</th><th>סכום</th></tr></thead><tbody>'+pRows2+'</tbody></table>'+
-      '</body></html>';
-    var b = new Blob([html],{type:'text/html;charset=utf-8'});
-    var a = document.createElement('a'); a.href=URL.createObjectURL(b);
-    a.download='דוח_'+from+'_עד_'+to+'.html';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }
-}
 
+    var excelHtml = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40" dir="rtl">'+
+      '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>דוח מכירות</x:Name><x:WorksheetOptions><x:DisplayRightToLeft/><x:FreezePanes/><x:FrozenNoSplit/><x:SplitHorizontal>1</x:SplitHorizontal><x:TopRowBottomPane>1</x:TopRowBottomPane></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'+
+      '<style>table{border-collapse:collapse;font-family:Arial;font-size:11pt;direction:rtl}th{background:#1d6f42;color:#fff;font-weight:bold;border:1px solid #ccc;padding:6px}td{border:1px solid #ddd;padding:5px;vertical-align:top}.num{mso-number-format:"0.00"}.txt{mso-number-format:"\\@"}.sum{font-weight:bold;background:#eaf4ee}</style></head><body>'+
+      '<table><tr><th>שם</th><th>טלפון</th><th>עיר</th><th>פאה</th><th>עמודה</th><th>מחיר סופי</th><th>עמלה ($)</th><th>רווח</th><th>מע"מ</th><th>תפעול (%)</th><th>שער דולר</th><th>תשלום</th><th>תאריך רכישה</th><th>הערות</th></tr>'+
+      rows+
+      '<tr class="sum"><td colspan="5">סה"כ</td><td>'+Math.round(total)+'</td><td colspan="8">'+filtered.length+' רכישות</td></tr>'+
+      '</table></body></html>';
+
+    var excelBlob = new Blob(['\uFEFF', excelHtml], {type:'application/vnd.ms-excel;charset=utf-8'});
+    if (downloadBlob(excelBlob, 'דוח_'+filePart(safeFrom)+'_עד_'+filePart(safeTo)+'.xls')) {
+      toast('📊 דוח Excel הורד');
+    } else {
+      toast('לא הצלחתי להוריד את קובץ Excel');
+    }
+    return;
+  }
+
+  if (type === 'word') {
+    // נשאר לתאימות עם גרסאות קודמות, גם אם אין כרגע כפתור Word.
+    var wordRows = filtered.map(function(o){
+      return '<tr><td>'+h(o.name)+'</td><td>'+h(o.phone)+'</td><td>'+h(o.city)+'</td><td>'+h(o.wig)+'</td><td>₪'+(Number(o.price)||0).toLocaleString('he-IL')+'</td><td>'+h(o.pay)+'</td><td>'+h(displayPurchaseDate(o))+'</td></tr>';
+    }).join('');
+    var wordHtml = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;direction:rtl}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px}th{background:#2563eb;color:#fff}</style></head><body><h1>'+h(title)+'</h1><table><tr><th>שם</th><th>טלפון</th><th>עיר</th><th>פאה</th><th>מחיר</th><th>תשלום</th><th>תאריך</th></tr>'+wordRows+'</table></body></html>';
+    var wordBlob = new Blob(['\uFEFF',wordHtml],{type:'application/msword;charset=utf-8'});
+    downloadBlob(wordBlob,'דוח_'+filePart(safeFrom)+'_עד_'+filePart(safeTo)+'.doc');
+    return;
+  }
+
+  // PDF: פותחים גרסת הדפסה אמיתית ומפעילים את חלון ההדפסה.
+  // בדפדפן בוחרים "שמירה כ-PDF". כך אין תלות בספריית PDF חיצונית.
+  var printWin = window.open('', '_blank');
+  if (!printWin) {
+    toast('הדפדפן חסם את חלון ה-PDF — אפשר חלונות קופצים לאתר ונסה שוב');
+    return;
+  }
+
+  var tRows2 = filtered.map(function(o){
+    return '<tr>'+
+      '<td>'+h(o.name)+'</td><td class="phone">'+h(o.phone)+'</td><td>'+h(o.city)+'</td>'+
+      '<td><b>'+h(o.wig)+'</b>'+(o.col?'<br><small>'+h(o.col)+'</small>':'')+'</td>'+
+      '<td class="money">₪'+(Number(o.price)||0).toLocaleString('he-IL')+'</td>'+
+      '<td>'+h(o.pay)+'</td><td>'+h(displayPurchaseDate(o))+'</td><td>'+h(o.notes)+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var wRows2 = Object.keys(wigStats).sort(function(a,b){return wigStats[b]-wigStats[a];}).map(function(w){
+    return '<tr><td>'+h(w)+'</td><td class="center"><b>'+wigStats[w]+'</b></td></tr>';
+  }).join('');
+  var pRows2 = Object.keys(payStats).map(function(pay){
+    return '<tr><td>'+h(pay)+'</td><td class="money">₪'+Math.round(payStats[pay]).toLocaleString('he-IL')+'</td></tr>';
+  }).join('');
+
+  var printHtml = '<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><title>'+h(title)+'</title>'+
+    '<style>@page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;direction:rtl;color:#111;margin:0;font-size:10.5px}h1{font-size:20px;margin:0 0 12px}h2{font-size:13px;color:#1d4ed8;margin:18px 0 6px;border-bottom:1px solid #bfdbfe;padding-bottom:4px}.toolbar{display:flex;gap:8px;margin-bottom:14px}.toolbar button{border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}.primary{background:#2563eb;color:#fff}.secondary{background:#eee;color:#111}.sum{display:flex;gap:10px;margin-bottom:14px}.card{min-width:145px;border:1px solid #ddd;border-radius:10px;padding:10px;text-align:center}.num{font-size:20px;font-weight:800}.lbl{font-size:10px;color:#666;margin-top:3px}table{width:100%;border-collapse:collapse;table-layout:auto}th{background:#1d4ed8;color:#fff;padding:6px;text-align:right;font-size:10px}td{border-bottom:1px solid #e5e7eb;padding:6px;vertical-align:top}small{color:#666}.money{font-weight:700;white-space:nowrap}.phone{direction:ltr;text-align:right}.center{text-align:center}@media print{.toolbar{display:none}body{font-size:9px}h1{font-size:17px}.card{padding:7px}.num{font-size:17px}th,td{padding:4px}}</style></head><body>'+
+    '<div class="toolbar"><button class="primary" onclick="window.print()">💾 שמירה כ-PDF / הדפסה</button><button class="secondary" onclick="window.close()">סגור</button></div>'+
+    '<h1>'+h(title)+'</h1>'+
+    '<div class="sum"><div class="card"><div class="num">'+filtered.length+'</div><div class="lbl">רכישות</div></div><div class="card"><div class="num">₪'+Math.round(total).toLocaleString('he-IL')+'</div><div class="lbl">סה"כ הכנסות</div></div><div class="card"><div class="num">₪'+avg.toLocaleString('he-IL')+'</div><div class="lbl">ממוצע לעסקה</div></div></div>'+
+    '<h2>פירוט רכישות</h2><table><thead><tr><th>שם</th><th>טלפון</th><th>עיר</th><th>פאה</th><th>מחיר</th><th>תשלום</th><th>תאריך רכישה</th><th>הערות</th></tr></thead><tbody>'+tRows2+'</tbody></table>'+
+    '<h2>פאות שנמכרו</h2><table><thead><tr><th>פאה</th><th>כמות</th></tr></thead><tbody>'+wRows2+'</tbody></table>'+
+    '<h2>הכנסות לפי אמצעי תשלום</h2><table><thead><tr><th>אמצעי</th><th>סכום</th></tr></thead><tbody>'+pRows2+'</tbody></table>'+
+    '<script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+
+  printWin.document.open();
+  printWin.document.write(printHtml);
+  printWin.document.close();
+}
 
 function exportBackup() {
   // galPhotos כבר טעון בזיכרון (מ-IDB או localStorage)
@@ -4176,6 +4294,13 @@ function resetOrderFormForNewOrder(){
     // איפוס תמונת/נתוני גלריה אם יש אלמנטים
     var gprev=document.getElementById('gallery-order-preview');
     if(gprev) gprev.innerHTML='';
+
+    // תאריך רכישה חדש: ברירת מחדל היום בלבד בטופס, ללא שינוי בנתונים שמורים
+    var purchaseDateEl=document.getElementById('ord-purchase-date');
+    if(purchaseDateEl){
+      purchaseDateEl.max=localTodayISO();
+      purchaseDateEl.value=localTodayISO();
+    }
   }catch(e){
     console.warn('resetOrderFormForNewOrder failed', e);
   }
@@ -4189,6 +4314,7 @@ window.addEventListener('load', function(){
       if(rateEl && (!rateEl.textContent || rateEl.textContent.trim()==='')){
         rateEl.textContent = '₪' + (window.DEFAULT_USD_ILS_RATE || 3.65).toFixed(2) + ' *';
       }
+      if(typeof configurePurchaseDateInput === 'function') configurePurchaseDateInput();
       if(typeof renderAll === 'function') renderAll();
       if(typeof renderPrices === 'function') renderPrices();
     }catch(e){}
@@ -4964,23 +5090,9 @@ function addToCart() {
 }
 
 function addToCartAndProceed() {
-  if (!pendingOrder) { goOrderStep(2); return; }
-  var o = collectOrderData();
-  var alreadyInCart = cartItems.some(function(ci){
-    return ci.id === (pendingOrder.draftId || pendingOrder.id || -1);
-  });
-  if (!alreadyInCart) {
-    cartItems.push({
-      id: pendingOrder.draftId || Date.now(),
-      wigName: (o && o.wig) || (o && o.wigDetails && o.wigDetails.wigType) || 'פאה',
-      price: (o && o.price) || pendingOrder.price || 0,
-      col: (o && o.col) || pendingOrder.col || '',
-      snapshot: o || {},
-      isDraft: true
-    });
-    updateCartBar();
-    toast('✅ נוסף לעגלה');
-  }
+  // שלב 1 הוא עדיין חלק מאותה הזמנה — לא מכניסים לעגלה לפני שיש פרטי לקוחה ותאריך רכישה.
+  // לעגלה מוסיפים רק אחרי שההזמנה נשמרה, דרך מסך הסיום, אם באמת רוצים לבחור פאה נוספת.
+  if (!pendingOrder) return;
   goOrderStep(2);
 }
 
@@ -5115,7 +5227,12 @@ function checkoutCart() {
     wigSummary: cartItems.map(function(ci){ return ci.wigName; }).join(' + ')
   });
 
-  // שמור את ההזמנה ב-orders כדי שמסך התשלום יוכל לעדכן אותה
+  // אם הפאות בעגלה כבר נשמרו כרכישות נפרדות, ההזמנה המאוחדת מחליפה אותן — לא משכפלת אותן.
+  // מסירים רק לפי id מדויק של פריטי העגלה; אין מחיקה לפי שם/מחיר ולכן רכישות אמיתיות אחרות נשארות ללא שינוי.
+  var cartSourceIds = cartItems.map(function(ci){ return String(ci.id); });
+  orders = orders.filter(function(o){ return cartSourceIds.indexOf(String(o.id)) === -1; });
+
+  // שמור את ההזמנה המאוחדת ב-orders כדי שמסך התשלום יוכל לעדכן אותה
   orders.unshift(currentSuccessOrder);
   try { saveOrders(); } catch(e) {}
   try { renderCRM(); } catch(e) {}
