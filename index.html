@@ -967,6 +967,10 @@ button.tab-btn.active{
           <input type="number" id="font-size-num" min="12" max="22" value="16" step="1" style="width:54px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:12px;text-align:center;background:var(--card);color:var(--text)" oninput="applyFontSize(this.value,true)">
         </div>
         <div class="sep"></div>
+        <div class="sec-title">💳 HYP — סליקה וקבלות</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.6">הסליקה מחוברת לשרת המאובטח של רחלי ב-Cloudflare. פרטי האשראי מוזנים ונשמרים רק אצל HYP.</p>
+        <button class="btn btn-blue" onclick="openHypServicePage()" style="width:100%">✅ פתח בדיקת תקינות HYP</button>
+        <div class="sep"></div>
         <div class="sec-title">💾 גיבוי ושחזור</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:10px">ייצא את כל הנתונים (גלריה, לקוחות, הגדרות) לקובץ — ויבא אותם באתר החדש.</p>
         <div style="display:flex;gap:8px">
@@ -979,6 +983,38 @@ button.tab-btn.active{
       </div><!-- /admin-settings -->
 
     </div>
+  </div>
+</div>
+
+
+<div id="hyp-test-modal" style="display:none;position:fixed;inset:0;z-index:790;background:rgba(0,0,0,.66);overflow-y:auto;padding:16px">
+  <div id="hyp-test-box" style="position:relative;background:var(--card);border-radius:20px;width:100%;max-width:560px;margin:16px auto;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.28)">
+    <button type="button" class="modal-close-x" onclick="closeHypTestModal()" aria-label="סגור">×</button>
+    <h2 style="font-size:21px;font-weight:900;margin:2px 38px 4px 0">💳 חיבור HYP</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">בדיקת החיבור מתבצעת כאן, בלי לעבור למסך הניהול.</p>
+    <div class="sec-title">💳 HYP — בדיקת חיבור</div>
+        <div style="background:var(--accent-bg);border:1px solid var(--accent);border-radius:12px;padding:12px;margin-bottom:12px;font-size:13px;line-height:1.6">
+          <b>שלב בדיקה בלבד — ללא חיוב.</b><br>
+          הפרטים הרגישים כאן <b>לא נשמרים</b> ב-localStorage ולא נכנסים לגיבוי. הם קיימים רק בשדות עד שסוגרים/מרעננים את העמוד.
+        </div>
+        <div class="field"><label>מספר מסוף HYP</label><input type="text" id="hyp-test-masof" value="4502316530" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label>API Key</label><input type="password" id="hyp-test-key" placeholder="הדביקי כאן לצורך הבדיקה בלבד" autocomplete="new-password"></div>
+        <div class="field"><label>PassP</label><input type="password" id="hyp-test-passp" placeholder="הדביקי כאן לצורך הבדיקה בלבד" autocomplete="new-password"></div>
+        <div class="g2">
+          <div class="field"><label>סכום בדיקה ₪</label><input type="number" id="hyp-test-amount" value="1" min="0.01" step="0.01"></div>
+          <div class="field"><label>אימייל לבדיקה (לא חובה)</label><input type="email" id="hyp-test-email" placeholder="name@example.com" autocomplete="off"></div>
+        </div>
+        <button class="btn btn-blue" onclick="hypRunSignTest()" style="width:100%">🔐 1. בדיקת חתימה מול HYP — ללא חיוב</button>
+        <p style="font-size:12px;color:var(--muted);line-height:1.55;margin:8px 0 10px">ייפתח חלון חדש עם התשובה של HYP. העתיקי את כל הטקסט שמופיע שם והדביקי אותו בשדה הבא.</p>
+        <div class="field"><label>תשובת HYP</label><textarea id="hyp-test-response" style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:12px;font-family:monospace;background:var(--card);color:var(--text);direction:ltr" placeholder="הדביקי כאן את התשובה שחזרה מ-HYP"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button class="btn" onclick="hypParseSignResponse()">🔎 2. נתח תשובה</button>
+          <button class="btn" onclick="hypClearTestSecrets()">🧹 נקה פרטים</button>
+        </div>
+        <div id="hyp-test-result" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--bg);font-size:13px;line-height:1.6"></div>
+        <button id="hyp-open-pay-btn" class="btn btn-blue" onclick="hypOpenPaymentFromResponse()" style="display:none;width:100%;margin-top:8px">💳 3. פתח דף סליקה של HYP</button>
+
+    <button class="btn" onclick="closeHypTestModal()" style="width:100%;margin-top:12px">חזרה לעסקה</button>
   </div>
 </div>
 
@@ -1042,7 +1078,7 @@ button.tab-btn.active{
           <button class="btn btn-blue" onclick="openPayScreen('custom')" style="width:100%;text-align:right;padding:14px">💰 תשלום מותאם אישית <span style="font-size:11px;opacity:0.8;display:block">שילוב כמה אמצעים / פריסה</span></button>
           <button class="btn" onclick="openPayScreen('bit')" style="width:100%;text-align:right;padding:14px">📱 ביט / פייבוקס <span style="font-size:11px;color:var(--muted);display:block">לאחר התשלום יש לשלוח אישור</span></button>
           <button class="btn" onclick="openPayScreen('standing')" style="width:100%;text-align:right;padding:14px">🏦 הוראת קבע / העברה בנקאית <span style="font-size:11px;color:var(--muted);display:block">פריסה נוחה דרך הבנק</span></button>
-          <button class="btn" onclick="openPayScreen('credit')" style="width:100%;text-align:right;padding:14px">💳 תשלום באשראי <span style="font-size:11px;color:var(--muted);display:block">יחובר לעמוד סליקה בקרוב</span></button>
+          <button class="btn" onclick="openPayScreen('credit')" style="width:100%;text-align:right;padding:14px">💳 תשלום באשראי <span style="font-size:11px;color:var(--muted);display:block">מעבר מאובטח לעמוד HYP</span></button>
           <button class="btn" onclick="openPayWhatsapp()" style="width:100%;background:#25D366;color:#fff;border-color:#25D366;text-align:right;padding:12px">💬 צריכה עזרה? וואטסאפ</button>
         </div>
       </div>
@@ -1061,8 +1097,11 @@ button.tab-btn.active{
       <!-- מסך אשראי -->
       <div id="pay-credit-screen" style="display:none">
         <h4 style="margin:12px 0 8px;font-size:14px">💳 תשלום באשראי</h4>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">בהמשך יחובר לעמוד סליקה. כרגע ניתן לסמן ידנית.</p>
-        <button class="btn btn-blue" onclick="markPaymentDone('אשראי')" style="width:100%">✅ סימון כשולם באשראי</button>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">ייפתח חלון מאובטח של HYP. פרטי הכרטיס אינם עוברים לתוכנה ואינם נשמרים בה.</p>
+        <div class="field"><label>סכום לחיוב באשראי ₪</label><input type="number" id="hyp-pay-amount" min="0.01" step="0.01" placeholder="סכום לתשלום"></div>
+        <div class="field"><label>מספר תשלומים</label><input type="number" id="hyp-pay-installments" min="1" max="36" value="1"></div>
+        <button class="btn btn-blue" onclick="startHypCreditPayment()" style="width:100%" id="hyp-pay-btn">🔒 מעבר לתשלום מאובטח</button>
+        <button class="btn" onclick="markPaymentDone('אשראי — HYP')" style="width:100%;margin-top:8px">✅ לאחר אישור HYP — סמן כשולם</button>
         <button class="btn" onclick="backToPayMethods()" style="width:100%;margin-top:10px">← חזרה</button>
       </div>
 
@@ -4138,6 +4177,174 @@ function importBackup(input) {
 }
 
 
+
+// ── HYP connection test (runtime only; secrets are never persisted) ──
+var hypLastSignedParams = null;
+
+function hypVal(id) {
+  var el = document.getElementById(id);
+  return el ? String(el.value || '').trim() : '';
+}
+
+function hypRunSignTest() {
+  var masof = hypVal('hyp-test-masof');
+  var key = hypVal('hyp-test-key');
+  var passp = hypVal('hyp-test-passp');
+  var amount = parseFloat(hypVal('hyp-test-amount') || '0');
+  var email = hypVal('hyp-test-email');
+  if (!/^\d{10}$/.test(masof)) { toast('מספר מסוף צריך להיות 10 ספרות'); return; }
+  if (!key) { toast('נא להזין API Key'); return; }
+  if (!passp) { toast('נא להזין PassP'); return; }
+  if (!(amount > 0)) { toast('נא להזין סכום בדיקה'); return; }
+
+  // APISign only signs the payment request; it does not charge a card.
+  var params = {
+    action: 'APISign',
+    What: 'SIGN',
+    KEY: key,
+    PassP: passp,
+    Masof: masof,
+    Amount: amount.toFixed(2),
+    Coin: '1',
+    Info: 'Racheli Kashi HYP connection test',
+    Order: String(Date.now()),
+    Tash: '1',
+    FixTash: 'False',
+    J5: 'False',
+    Postpone: 'False',
+    SendHesh: 'False',
+    MoreData: 'True',
+    Sign: 'True',
+    UTF8: 'True',
+    UTF8out: 'True',
+    PageLang: 'HEB',
+    sendemail: 'False',
+    ClientName: 'Racheli',
+    ClientLName: 'Kashi',
+    email: email || ''
+  };
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://icom.yaad.net/p/';
+  form.target = '_blank';
+  form.style.display = 'none';
+  Object.keys(params).forEach(function(k){
+    var input = document.createElement('input');
+    input.type = 'hidden'; input.name = k; input.value = params[k];
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(function(){ try { document.body.removeChild(form); } catch(e){} }, 1000);
+  var result = document.getElementById('hyp-test-result');
+  if(result){
+    result.style.display='block';
+    result.innerHTML='<b>נשלחה בקשת חתימה.</b><br>אם HYP קיבלה את הפרטים, בחלון החדש תופיע תשובה שכוללת בדרך כלל <code>signature=...</code>. העתיקי את התשובה לכאן ולחצי “נתח תשובה”.';
+  }
+}
+
+function hypNormalizeResponseText(raw) {
+  raw = String(raw || '').trim();
+  if (!raw) return '';
+  raw = raw.replace(/^<pre[^>]*>/i,'').replace(/<\/pre>$/i,'').trim();
+  raw = raw.replace(/&amp;/g,'&');
+  var q = raw.indexOf('?');
+  if (/^https?:\/\//i.test(raw) && q >= 0) raw = raw.slice(q+1);
+  if (raw.charAt(0) === '?') raw = raw.slice(1);
+  return raw;
+}
+
+function hypParseSignResponse() {
+  var raw = hypNormalizeResponseText(hypVal('hyp-test-response'));
+  var result = document.getElementById('hyp-test-result');
+  var payBtn = document.getElementById('hyp-open-pay-btn');
+  if (!raw) { toast('נא להדביק את תשובת HYP'); return; }
+  try {
+    var qs = new URLSearchParams(raw);
+    var obj = {};
+    qs.forEach(function(v,k){ obj[k]=v; });
+    hypLastSignedParams = obj;
+    var sig = obj.signature || obj.Signature || '';
+    var ccode = obj.CCode || obj.ccode || '';
+    var err = obj.errMsg || obj.Error || obj.error || '';
+    var keys = Object.keys(obj);
+    if (sig) {
+      var masked = sig.length > 18 ? sig.slice(0,10)+'…'+sig.slice(-8) : sig;
+      result.style.display='block';
+      result.innerHTML='<div style="color:var(--success);font-weight:800">✅ HYP החזירה חתימה תקינה</div>'+ 
+        '<div>Signature: <code>'+masked.replace(/</g,'&lt;')+'</code></div>'+ 
+        '<div>שדות שחזרו: '+keys.length+'</div>'+ 
+        '<div style="font-size:12px;color:var(--muted);margin-top:5px">השלב הבא יכול לפתוח את דף הסליקה שנחתם. פתיחת הדף עצמה עדיין אינה חיוב.</div>';
+      if(payBtn) payBtn.style.display='block';
+    } else {
+      result.style.display='block';
+      result.innerHTML='<div style="color:var(--danger);font-weight:800">❌ לא נמצאה חתימה בתשובה</div>'+ 
+        (ccode ? '<div>CCode: <code>'+String(ccode).replace(/</g,'&lt;')+'</code></div>' : '')+
+        (err ? '<div>שגיאה: '+String(err).replace(/</g,'&lt;')+'</div>' : '')+
+        '<div style="font-size:12px;color:var(--muted);margin-top:5px">שלחי לי צילום/את הטקסט שחזר ונזהה בדיוק מה HYP דורשת.</div>';
+      if(payBtn) payBtn.style.display='none';
+    }
+  } catch(e) {
+    hypLastSignedParams = null;
+    if(result){ result.style.display='block'; result.innerHTML='<div style="color:var(--danger);font-weight:800">לא הצלחתי לקרוא את התשובה</div><div style="font-size:12px">'+String(e.message||e)+'</div>'; }
+    if(payBtn) payBtn.style.display='none';
+  }
+}
+
+function hypOpenPaymentFromResponse() {
+  if(!hypLastSignedParams){ toast('קודם יש לנתח תשובת חתימה'); return; }
+  var p = Object.assign({}, hypLastSignedParams);
+  var sig = p.signature || p.Signature;
+  if(!sig){ toast('אין חתימה לפתיחת דף תשלום'); return; }
+  // Never forward signing secrets even if they somehow appear in the response.
+  delete p.KEY; delete p.PassP; delete p.What; delete p.Signature;
+  p.signature = sig;
+  p.action = 'pay';
+  var qs = new URLSearchParams();
+  Object.keys(p).forEach(function(k){ if(p[k] !== undefined && p[k] !== null && String(p[k]) !== '') qs.set(k, p[k]); });
+  window.open('https://icom.yaad.net/p/?'+qs.toString(), '_blank', 'noopener');
+}
+
+function hypClearTestSecrets() {
+  ['hyp-test-key','hyp-test-passp','hyp-test-response'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  hypLastSignedParams = null;
+  var r=document.getElementById('hyp-test-result'); if(r){r.style.display='none';r.innerHTML='';}
+  var b=document.getElementById('hyp-open-pay-btn'); if(b)b.style.display='none';
+  toast('פרטי הבדיקה נוקו');
+}
+
+function openHypTestModal() {
+  var modal = document.getElementById('hyp-test-modal');
+  if(!modal){ toast('מסך בדיקת HYP לא נמצא'); return; }
+  // אם הגענו מתוך עסקה, הצג את סכום העסקה בשדה הבדיקה אך אל תחייב אוטומטית.
+  var amountEl = document.getElementById('hyp-test-amount');
+  if(amountEl && currentSuccessOrder && Number(currentSuccessOrder.price) > 0) {
+    amountEl.value = Number(currentSuccessOrder.price);
+  }
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  setTimeout(function(){
+    var keyEl=document.getElementById('hyp-test-key');
+    if(keyEl) keyEl.focus();
+  },120);
+}
+
+function closeHypTestModal() {
+  var modal = document.getElementById('hyp-test-modal');
+  if(modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function openHypTestFromPayment() {
+  openHypTestModal();
+}
+
+
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'hyp-test-modal') closeHypTestModal();
+});
+
 function toggleItemsList() {
   var el = document.getElementById('items-list');
   var btn = document.getElementById('items-toggle-btn');
@@ -5499,6 +5706,7 @@ function openPayScreen(type) {
   var target = document.getElementById('pay-'+type+'-screen');
   if(target) target.style.display = 'block';
   if(type === 'standing') { renderStandingAccountBox(); renderBankButtons(); calcStandingOnOpen(); }
+  if(type === 'credit') prefillHypCreditAmount();
   if(type === 'custom') initCustomPayScreen();
 }
 
@@ -5533,6 +5741,55 @@ function sendStandingOrderConfirm() {
 
 function openBitApp() { window.open('https://www.bitpay.co.il/', '_blank'); }
 function openPayboxApp() { window.open('https://payboxapp.page.link/pay', '_blank'); }
+
+var HYP_BRIDGE_URL = 'https://racheli-hyp-bridge.089493.workers.dev';
+
+function openHypServicePage(){
+  window.open(HYP_BRIDGE_URL + '/', '_blank', 'noopener');
+}
+
+function prefillHypCreditAmount(){
+  var el = document.getElementById('hyp-pay-amount');
+  if(!el) return;
+  var order = currentSuccessOrder || {};
+  var price = parseFloat(order.price || 0) || 0;
+  if(price > 0) el.value = price.toFixed(2);
+}
+
+function splitHypCustomerName(fullName){
+  var parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts.shift() || 'לקוחה',
+    lastName: parts.join(' ') || ''
+  };
+}
+
+function startHypCreditPayment(){
+  var order = currentSuccessOrder || {};
+  var amountEl = document.getElementById('hyp-pay-amount');
+  var installmentsEl = document.getElementById('hyp-pay-installments');
+  var amount = amountEl ? parseFloat(amountEl.value) : 0;
+  var installments = installmentsEl ? parseInt(installmentsEl.value, 10) : 1;
+  if(!Number.isFinite(amount) || amount < 0.01){ toast('נא להזין סכום תקין לחיוב'); return; }
+  if(!Number.isFinite(installments) || installments < 1 || installments > 36){ toast('מספר התשלומים צריך להיות בין 1 ל-36'); return; }
+
+  var customer = splitHypCustomerName(order.name || clientNameClean());
+  var orderId = currentPayOrderId || order.id || Date.now();
+  var params = new URLSearchParams({
+    amount: amount.toFixed(2),
+    order: String(orderId),
+    name: customer.firstName,
+    lname: customer.lastName,
+    email: String(order.email || ''),
+    installments: String(installments),
+    info: 'תשלום עבור הזמנה ' + String(orderId) + ' - רחלי קאשי פאות'
+  });
+
+  var paymentWindow = window.open(HYP_BRIDGE_URL + '/pay?' + params.toString(), '_blank', 'noopener');
+  if(!paymentWindow){ toast('הדפדפן חסם את חלון התשלום — יש לאפשר חלונות קופצים'); return; }
+  toast('דף התשלום המאובטח נפתח בחלון חדש');
+}
+
 function openPayWhatsapp() {
   var phone = (currentSuccessOrder&&currentSuccessOrder.phone) ? currentSuccessOrder.phone.replace(/\D/g,'').replace(/^0/,'') : '';
   var msg = encodeURIComponent('היי 😊 אשמח לעזור עם הסדרת התשלום!');
